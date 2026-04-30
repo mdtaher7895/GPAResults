@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "775666158313",
+    "project_id": "gparesults-7895",
+    "storage_bucket": "gparesults-7895.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:775666158313:android:4a37c788a0db4b787f3e78",
+        "android_client_info": {
+          "package_name": "com.example.gparesults"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCuCWf1UiSxC1bmmpPZbB6bWKHN1gkV0TQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
