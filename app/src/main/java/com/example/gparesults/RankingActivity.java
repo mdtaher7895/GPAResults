@@ -245,22 +245,27 @@ public class RankingActivity extends AppCompatActivity {
                 TextView tv = new TextView(this);
                 tv.setText(gradeData[i][j]);
 
+                // সাধারণ ফন্ট অ্যাপ্লাই
                 FontUtils.applyCustomFont(this, tv, gradeData[i][j]);
-
 
                 tv.setPadding(20, 4, 20, 4);
                 tv.setGravity(Gravity.CENTER);
                 tv.setTextSize(10);
                 tv.setTextColor(Color.BLACK);
 
-                // আপনার কাস্টম বর্ডার এখানে সেট করা হলো
+                // কাস্টম বর্ডার সেট করা
                 tv.setBackgroundResource(R.drawable.table_border_header);
 
                 if (i == 0 && j == 0) {
                     TableRow.LayoutParams params = new TableRow.LayoutParams();
                     params.span = 3;
                     tv.setLayoutParams(params);
+
+                    // এখানে আগে বোল্ড সেট করে তারপর আবার ফন্ট অ্যাপ্লাই করা হয়েছে
+                    // যাতে বোল্ড করার সময় ফন্টটি হারিয়ে না যায়
                     tv.setTypeface(null, Typeface.BOLD);
+                    FontUtils.applyCustomFont(this, tv, gradeData[i][j]);
+
                     row.addView(tv);
                     break;
                 } else {
@@ -452,12 +457,19 @@ public class RankingActivity extends AppCompatActivity {
     private TextView createStyledTextView(String text, boolean isHeader, int widthDp, int textColor) {
         TextView tv = new TextView(this);
 
-        // ১. আগে টেক্সট এবং সাধারণ ফন্ট সেট করে নিন
+        // ১. টেক্সট সেটআপ (আপনার সেই \n সহ টেক্সটই থাকবে)
         tv.setText(text);
-        tv.setPadding(1, 1, 1, 1);
+        tv.setPadding(2, 2, 2, 2);
         tv.setGravity(Gravity.CENTER);
+
+        // ২. ফিক্সড উইথ সেট করা যাতে ঘর লম্বা না হয়
         int widthPx = (int) (widthDp * getResources().getDisplayMetrics().density);
         tv.setLayoutParams(new TableRow.LayoutParams(widthPx, TableRow.LayoutParams.MATCH_PARENT));
+
+        // ৩. মাল্টি-লাইন সাপোর্ট নিশ্চিত করা
+        tv.setSingleLine(false);
+        tv.setMaxLines(3); // সর্বোচ্চ ৩ লাইন পর্যন্ত যাবে
+        tv.setHorizontallyScrolling(false); // ডানে লম্বা হতে বাধা দিবে
 
         if (isHeader) {
             android.graphics.drawable.GradientDrawable gd = new android.graphics.drawable.GradientDrawable();
@@ -469,18 +481,25 @@ public class RankingActivity extends AppCompatActivity {
         }
 
         tv.setTextColor(textColor);
-        tv.setTextSize(14);
+        tv.setTextSize(10); // লেখা বেশি হলে সাইজ একটু কমিয়ে ১০ করা ভালো
 
-        // ২. মেথডের শেষে ফন্ট অ্যাপ্লাই করুন
-        FontUtils.applyCustomFont(this, tv, text);
+        // ৪. সরাসরি টাইপফেস সেট করা (যা \n থাকলেও কাজ করবে)
+        try {
+            Typeface tf = androidx.core.content.res.ResourcesCompat.getFont(this, R.font.sutonnymjregular);
+            tv.setTypeface(tf);
+        } catch (Exception e) {
+            // ফন্ট না পেলে অল্টারনেট মেথড
+            FontUtils.applyCustomFont(this, tv, text);
+        }
 
-        // ৩. হেডার হলে ফন্ট নষ্ট না করে শুধু বোল্ড স্টাইল যোগ করুন
+        // ৫. হেডার বোল্ড করা
         if (isHeader) {
             tv.setTypeface(tv.getTypeface(), Typeface.BOLD);
         }
 
         return tv;
     }
+
 
 
 
