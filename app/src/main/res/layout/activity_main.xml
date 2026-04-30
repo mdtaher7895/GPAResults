@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:gravity="center_horizontal"
+    android:background="#8D816C">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="রেজাল্ট শীট জেনারেটর"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="#1B5E20"
+        android:layout_marginBottom="30dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="সাবজেক্ট সংখ্যা নির্বাচন করুন:"
+        android:textSize="16sp"
+        android:textColor="#333333"/>
+
+    <Spinner
+        android:id="@+id/subjectSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="5dp"
+        android:layout_marginBottom="40dp"
+        android:background="@android:drawable/btn_dropdown"/>
+
+    <Button
+        android:id="@+id/btnMadrasa"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="মাদ্রাসার রেজাল্ট শীট (ইনপুট শুরু)"
+        android:textSize="18sp"
+        android:backgroundTint="#2E7D32"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="15dp"/>
+
+</LinearLayout>
