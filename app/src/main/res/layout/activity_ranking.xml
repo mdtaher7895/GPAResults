@@ -4,9 +4,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#FFFFFF">
+    android:background="#FFFFFF"
+    android:clickable="true"
+    android:focusableInTouchMode="true"
+    android:id="@+id/rootLayout"
+    tools:context=".RankingActivity">
 
-    <HorizontalScrollView
+
+<HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
@@ -26,38 +31,32 @@
                     android:id="@+id/etInstitutionName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="প্রতিষ্ঠানের নাম এখানে লিখুন"
+                    android:hint="প্রতিষ্ঠানের নাম এখানে লিখুন"
                     android:fontFamily="@font/sutonnymjregular"
                     android:textColor="#000000"
-                    android:textSize="25sp"
-                    android:inputType="text"
+                    android:textSize="30sp"
+                    android:inputType="textNoSuggestions"
                     android:gravity="center"
                     android:background="@null"
                     tools:ignore="HardcodedText" />
 
-
-
-
-
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
-
 
                     <EditText
                         android:id="@+id/etInstiutionName"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_toEndOf="@id/summeryTable"
-                        android:text="অবস্থিত ঠিকানা এখানে লিখুন"
+                        android:hint="অবস্থিত ঠিকানা এখানে লিখুন"
                         android:fontFamily="@font/sutonnymjregular"
                         android:textColor="#000000"
-                        android:textSize="20sp"
-                        android:inputType="text"
+                        android:textSize="25sp"
+                        android:inputType="textNoSuggestions"
                         android:gravity="center"
                         android:background="@null"
                         tools:ignore="HardcodedText,NotSibling" />
-
 
                     <LinearLayout
                         android:id="@+id/etIniutioname"
@@ -69,30 +68,29 @@
                         android:orientation="horizontal"
                         android:gravity="center_vertical">
 
-                        <!-- আপনার প্রথম EditText (ডিজাইন অপরিবর্তিত) -->
                         <EditText
                             android:id="@+id/etIniutionName"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text=" কোন সাময়িক পরীক্ষা"
+                            android:hint=" কোন সাময়িক পরীক্ষা"
                             android:fontFamily="@font/sutonnymjregular"
                             android:textColor="#000000"
-                            android:textSize="18sp"
-                            android:inputType="text"
+                            android:textSize="23sp"
+                            android:inputType="textNoSuggestions"
                             android:gravity="center"
                             android:background="@null"
                             tools:ignore="HardcodedText,NotSibling" />
 
-                        <!-- আপনার দ্বিতীয় EditText (ডিজাইন অপরিবর্তিত) -->
                         <EditText
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="5dp"
-                            android:text=" 2026-ইং  "
+                            android:hint=" 2026-ইং  "
                             android:fontFamily="@font/sutonnymjregular"
                             android:textColor="#FFFFFF"
-                            android:textSize="18sp"
-                            android:inputType="text"
+                            android:textColorHint="#FFFFFF"
+                            android:textSize="23sp"
+                            android:inputType="textNoSuggestions"
                             android:background="@drawable/rounded_black_bg"
                             android:gravity="center"
                             android:paddingStart="10dp"
@@ -100,8 +98,6 @@
                             tools:ignore="HardcodedText,NotSibling" />
 
                     </LinearLayout>
-
-
 
                     <TextView
                         android:id="@+id/etIniionName"
@@ -113,21 +109,15 @@
                         android:textStyle="bold"
                         android:fontFamily="@font/sutonnymjregular"
                         android:textColor="#FFFFFF"
-                        android:textSize="24sp"
+                        android:textSize="30sp"
                         android:background="@drawable/rounded_black_bg"
                         android:gravity="center"
                         tools:ignore="HardcodedText" />
 
-
-
-
-
-
-
-
                     <LinearLayout
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content">
+                        android:layout_height="wrap_content"
+                        android:paddingBottom="80dp">
 
                         <TableLayout
                             android:id="@+id/summeryTable"
@@ -137,17 +127,7 @@
                             android:layout_above="@id/blackStatusBar"
                             tools:ignore="ObsoleteLayoutParam" />
 
-
-
-
-
                     </LinearLayout>
-
-
-
-
-
-
 
                     <LinearLayout
                         android:id="@+id/blackStatusBar"
@@ -156,7 +136,6 @@
                         android:layout_alignParentBottom="true"
                         android:layout_alignParentStart="true"
                         android:background="#000000"
-                        android:layout_marginTop="40dp"
                         android:orientation="horizontal"
                         android:gravity="start|center_vertical">
 
@@ -164,7 +143,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="মোট পরীক্ষার্থী:"
-                            android:layout_marginStart="20dp"
+                            android:layout_marginStart="25dp"
                             android:fontFamily="@font/sutonnymjregular"
                             android:textColor="#FFFFFF"
                             android:textSize="17sp" />
@@ -175,11 +154,10 @@
                             android:layout_height="wrap_content"
                             android:textColor="#FFFFFF"
                             android:background="#333333"
-                            android:textSize="20sp"
+                            android:textSize="25sp"
                             android:layout_marginStart="5dp"
                             android:layout_marginEnd="15dp"
                             tools:text=" ৫৮ জন " />
-
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -188,7 +166,7 @@
                             android:layout_marginStart="60dp"
                             android:fontFamily="@font/sutonnymjregular"
                             android:textColor="#FFFFFF"
-                            android:textSize="17sp" />
+                            android:textSize="25sp" />
 
                         <TextView
                             android:id="@+id/tvPassRate"
@@ -197,13 +175,14 @@
                             android:textColor="#FFFFFF"
                             android:background="#333333"
                             android:padding="5dp"
-                            android:textSize="20sp"
+                            android:textSize="25sp"
                             android:layout_marginStart="5dp"
                             tools:text=" ৯৪.৮২% " />
 
                         <EditText
                             android:id="@+id/etClassName"
-                            android:layout_width="150dp"
+                            android:layout_width="wrap_content"
+                            android:minWidth="180dp"
                             android:layout_height="wrap_content"
                             android:hint="শ্রেণীর নাম লিখুন"
                             android:layout_marginStart="60dp"
@@ -212,11 +191,11 @@
                             android:textColor="#FFFFFF"
                             android:background="#333333"
                             android:gravity="center"
-                            android:padding="5dp"
-                            android:textSize="22sp"
-                            android:layout_marginEnd="15dp"
-                            android:inputType="text" />
-
+                            android:padding="8dp"
+                            android:textSize="28sp"
+                            android:layout_marginEnd="10dp"
+                            android:inputType="textNoSuggestions"
+                            tools:ignore="HardcodedText" />
 
 
                     </LinearLayout>

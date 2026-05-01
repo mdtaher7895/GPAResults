@@ -1,17 +1,23 @@
 package com.example.gparesults;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Insets;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
+import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -32,13 +38,21 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            androidx.core.graphics.Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         Button btnMadrasa = findViewById(R.id.btnMadrasa);
         subjectSpinner = findViewById(R.id.subjectSpinner);
 
+
         // --- ফায়ারবেস কন্ট্রোল শুরু ---
-        String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+        @SuppressLint("HardwareIds") String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
         DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference("Users").child(deviceId);
 
         btnMadrasa.setEnabled(false); // শুরুতে বাটন লক
@@ -93,10 +107,35 @@ public class MainActivity extends AppCompatActivity {
         // --- ফায়ারবেস কন্ট্রোল শেষ ---
 
         List<String> subList = new ArrayList<>();
-        for (int i = 4; i <= 15; i++) subList.add(i + " টি বিষয়");
+        for (int i = 4; i <= 20; i++) {
+            // সংখ্যাকে বাংলায় রূপান্তর
+            String bnNum = String.valueOf(i)
+                    .replace('0','০').replace('1','১').replace('2','২')
+                    .replace('3','৩').replace('4','৪').replace('5','৫')
+                    .replace('6','৬').replace('7','৭').replace('8','৮')
+                    .replace('9','৯');
+            subList.add(bnNum + " টি বিষয়ের জন্য");
+        }
 
-        ArrayAdapter<String> subAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, subList);
+        // কাস্টম অ্যাডাপ্টার যা ফন্ট এবং কালার ঠিক করবে
+        ArrayAdapter<String> subAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, subList) {
+            @NonNull
+            @Override
+            public android.view.View getView(int position, android.view.View convertView, @NonNull android.view.ViewGroup parent) {
+                android.view.View v = super.getView(position, convertView, parent);
+                android.widget.TextView tv = (android.widget.TextView) v;
+                tv.setTextColor(android.graphics.Color.BLACK); // টেক্সট কালার কালো করা হলো
+                // আপনার প্রজেক্টের FontUtils ব্যবহার করে ফন্ট সেট করা
+                com.example.gparesults.FontUtils.applyCustomFont(getContext(), tv, tv.getText().toString());
+                return v;
+            }
+        };
+
+        subAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         subjectSpinner.setAdapter(subAdapter);
+
+        // অটোমেটিক ৬টি বিষয় সিলেক্ট করে রাখা (ইনডেক্স ২ মানে ৪, ৫, ৬ নম্বর পজিশন)
+        subjectSpinner.setSelection(2);
 
         btnMadrasa.setOnClickListener(v -> {
             int subjects = subjectSpinner.getSelectedItemPosition() + 4;
@@ -104,5 +143,6 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("SUB_COUNT", subjects);
             startActivity(intent);
         });
+
     }
 }

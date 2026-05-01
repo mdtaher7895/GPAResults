@@ -42,10 +42,19 @@ public class RankingActivity extends AppCompatActivity {
     private ScaleGestureDetector scaleGestureDetector;
     private float scaleFactor = 1.0f;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        androidx.activity.EdgeToEdge.enable(this);
         setContentView(R.layout.activity_ranking);
+
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.rootLayout), (v, insets) -> {
+            androidx.core.graphics.Insets systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
 
         dbHelper = new DBHelper(this);
         rankingTable = findViewById(R.id.rankingTable);
@@ -56,12 +65,54 @@ public class RankingActivity extends AppCompatActivity {
         etClassName = findViewById(R.id.etClassName);
         mainContent = findViewById(R.id.main_content);
 
-        // ১. সমাধান: ScaleListener ইনার ক্লাসটি নিচে যোগ করা হয়েছে
-        scaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
+        // --- নতুন লজিক শুরু ---
+        View rootLayout = findViewById(R.id.rootLayout);
+        android.os.Handler handler = new android.os.Handler();
 
+        // ৫ সেকেন্ড পর কারসার বন্ধ করার রানাবল
+        Runnable autoHideCursor = () -> {
+            View current = getCurrentFocus();
+            if (current instanceof EditText) {
+                current.clearFocus();
+                android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(current.getWindowToken(), 0);
+            }
+        };
+
+        // বাইরে টাচ করলে কারসার লুকানো
+        rootLayout.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                handler.removeCallbacks(autoHideCursor); // টাচ করলে আগের টাইমার বাতিল
+                View focusedView = getCurrentFocus();
+                if (focusedView instanceof EditText) {
+                    focusedView.clearFocus();
+                    android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                }
+            }
+            return false;
+        });
+
+        // ৫ সেকেন্ড টাইমার লজিক (যে কোনো এডিট টেক্সটে টাচ করলে টাইমার শুরু হবে)
+        View.OnFocusChangeListener focusListener = (v, hasFocus) -> {
+            if (hasFocus) {
+                handler.removeCallbacks(autoHideCursor);
+                handler.postDelayed(autoHideCursor, 5000); // ৫০০০ মিলিসেকেন্ড = ৫ সেকেন্ড
+            } else {
+                handler.removeCallbacks(autoHideCursor);
+            }
+        };
+
+        // আপনার এডিট টেক্সটগুলোতে এই টাইমারটি সেট করা (অন্যান্য গুলোর জন্যও এটি কাজ করবে)
+        etClassName.setOnFocusChangeListener(focusListener);
+        findViewById(R.id.etInstitutionName).setOnFocusChangeListener(focusListener);
+        findViewById(R.id.etInstiutionName).setOnFocusChangeListener(focusListener);
+        findViewById(R.id.etIniutionName).setOnFocusChangeListener(focusListener);
+        // --- নতুন লজিক শেষ ---
+
+        scaleGestureDetector = new ScaleGestureDetector(this, new ScaleListener());
         subjectCount = getIntent().getIntExtra("SUB_COUNT", 4);
 
-        // ২. সমাধান: আর্গুমেন্ট হিসেবে gradeChartTable পাঠানো হয়েছে
         setupGradeChart(gradeChartTable);
         loadRankingTable();
 
@@ -70,6 +121,7 @@ public class RankingActivity extends AppCompatActivity {
             btnDownloadPDF.setOnClickListener(v -> generatePDFFromView(mainContent));
         }
     }
+
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
@@ -118,24 +170,30 @@ public class RankingActivity extends AppCompatActivity {
 
             @Override
             public void onWrite(PageRange[] pages, ParcelFileDescriptor destination, CancellationSignal cancellationSignal, WriteResultCallback callback) {
-                int pageWidth = view.getWidth();
+                // ১. এ৪ ল্যান্ডস্কেপ পেজের স্ট্যান্ডার্ড উইডথ (পিক্সেল হিসেবে প্রায় ৮৪২ পিক্সেল)
+                int pdfPageWidth = 842;
+                int viewWidth = view.getWidth();
+
+                // ২. স্কেলিং ফ্যাক্টর বের করা (ভিউ বড় হলে ছোট করবে, ছোট হলে বড় করবে)
+                float scale = (float) pdfPageWidth / (float) viewWidth;
+
                 int pageNumber = 1;
                 int lastBreakY = 0;
                 int totalRows = rankingTable.getChildCount();
 
-                // আপনার নতুন হেডার কালার কোড যা শনাক্ত করা হবে
-                int headerColor = Color.parseColor("#888888");
+                float density = getResources().getDisplayMetrics().density;
+                int topMarginPx = (int) (10 * density);
+                int headerColor = Color.parseColor("#D1D1D1");
 
                 for (int i = 0; i < totalRows; i++) {
                     View row = rankingTable.getChildAt(i);
                     boolean isHeader = false;
 
                     if (row instanceof TableRow) {
-                        // রো এর ব্যাকগ্রাউন্ড কালার চেক করে হেডার শনাক্ত করা
                         android.graphics.drawable.Drawable background = row.getBackground();
                         if (background instanceof android.graphics.drawable.ColorDrawable) {
                             if (((android.graphics.drawable.ColorDrawable) background).getColor() == headerColor) {
-                                if (i > 0) isHeader = true; // প্রথম রো বাদে অন্য সব হেডার মানেই নতুন পেজ
+                                if (i > 0) isHeader = true;
                             }
                         }
                     }
@@ -153,12 +211,25 @@ public class RankingActivity extends AppCompatActivity {
                         int pageHeight = endY - lastBreakY;
 
                         if (pageHeight > 0) {
-                            PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pageWidth, pageHeight, pageNumber).create();
+                            // স্কেলিং অনুযায়ী পেজ হাইট অ্যাডজাস্ট করা
+                            int finalPageHeight = (int) ((pageNumber > 1 ? (pageHeight + topMarginPx) : pageHeight) * scale);
+
+                            PdfDocument.PageInfo pageInfo = new PdfDocument.PageInfo.Builder(pdfPageWidth, finalPageHeight, pageNumber).create();
                             PdfDocument.Page page = pdfDocument.startPage(pageInfo);
 
                             Canvas canvas = page.getCanvas();
                             canvas.save();
-                            canvas.translate(0, -lastBreakY);
+
+                            // ৩. স্কেলিং লজিক প্রয়োগ (পুরো ভিউকে অটো-ফিট করবে)
+                            canvas.scale(scale, scale);
+
+                            // ৪. আপনার বিদ্যমান ট্রান্সলেট লজিক
+                            if (pageNumber > 1) {
+                                canvas.translate(0, -lastBreakY + topMarginPx);
+                            } else {
+                                canvas.translate(0, -lastBreakY);
+                            }
+
                             view.draw(canvas);
                             canvas.restore();
                             pdfDocument.finishPage(page);
@@ -181,6 +252,8 @@ public class RankingActivity extends AppCompatActivity {
             }
         }, attributes);
     }
+
+
 
 
 
@@ -211,9 +284,9 @@ public class RankingActivity extends AppCompatActivity {
                 FontUtils.applyCustomFont(this, tv, data[i][j]);
 
                 // লাইনের উচ্চতা/স্পেস কমাতে ২ এবং ৮ প্যাডিং ব্যবহার করা হয়েছে
-                tv.setPadding(30, 0, 30, 0);
+                tv.setPadding(35, 0, 35, 0);
                 tv.setGravity(Gravity.CENTER);
-                tv.setTextSize(10);
+                tv.setTextSize(15);
                 tv.setTextColor(Color.BLACK);
                 tv.setBackgroundResource(R.drawable.table_border_header);
 
@@ -248,9 +321,9 @@ public class RankingActivity extends AppCompatActivity {
                 // সাধারণ ফন্ট অ্যাপ্লাই
                 FontUtils.applyCustomFont(this, tv, gradeData[i][j]);
 
-                tv.setPadding(20, 4, 20, 4);
+                tv.setPadding(25, 4, 25, 4);
                 tv.setGravity(Gravity.CENTER);
-                tv.setTextSize(10);
+                tv.setTextSize(15);
                 tv.setTextColor(Color.BLACK);
 
                 // কাস্টম বর্ডার সেট করা
@@ -281,39 +354,41 @@ public class RankingActivity extends AppCompatActivity {
     @SuppressLint({"DefaultLocale", "SetTextI18n"})
     private void loadRankingTable() {
         rankingTable.removeAllViews();
+        rankingTable.setStretchAllColumns(true);
         Cursor cursor = dbHelper.getDataBySubjectCount(subjectCount);
         List<StudentModel> rankingList = new ArrayList<>();
         int g5=0, gA=0, gAm=0, gB=0, gC=0, gD=0, gF=0;
 
         String[] subjectNames = {
-                "আরবী", "বাংলা", "ইংরেজি", "গণিত",
-                "হাদিস ও\nআস: হুসনা", "কালিমা\nমাসায়িল",
-                "আদ: সালাত\nআদ:মাসনোনা", "কুরআন ও\nতাজবীদ",
-                "প: পরিবেশ ও\nসাধারণ জ্ঞান"
+                "  আরবী  ", "  বাংলা  ", "  ইংরেজি  ", "  গণিত  ",
+                "হাদিস শরীফ ও\nআস: হুসনা", "কালিমা ও\nমাসায়িল",
+                "আদ: সালাত ও\nআদ:মাসনোনা", "কুরআন ও\nতাজবীদ",
+                "প: সমাজ বিজ্ঞান\nও সাধারণ জ্ঞান"
         };
 
-        // --- ১. হেডার তৈরির জন্য Runnable ---
+        // --- ১. হেডার তৈরির জন্য Runnable (এখানে ডাইনামিক -২ করা হয়েছে) ---
         Runnable addHeaderToTable = () -> {
             TableRow headerRow = new TableRow(this);
-            headerRow.setBackgroundColor(Color.parseColor("#888888"));
-            addCell(headerRow, "রোল", true, 40);
-            addCell(headerRow, "ছাত্রদের নাম", true, 200);
+            headerRow.setBackgroundColor(Color.parseColor("#D1D1D1"));
+            addCell(headerRow, " রোল ", true, -2);
+            addCell(headerRow, " ছাত্রদের নাম ", true, -2);
             for (int i = 0; i < subjectCount; i++) {
                 if (i < subjectNames.length) {
-                    addCell(headerRow, subjectNames[i], true, 80);
+                    addCell(headerRow, subjectNames[i], true, -2);
                 } else {
-                    addCell(headerRow, "বি " + convertToBengali(i + 1), true, 80);
+                    addCell(headerRow, "বি " + convertToBengali(i + 1), true, -2);
                 }
             }
-            addCell(headerRow, "সর্বমোট", true, 100);
-            addCell(headerRow, "জিপিএ", true, 100);
-            addCell(headerRow, "গ্রেড", true, 80);
-            addCell(headerRow, "অবস্থান", true, 80);
-            addCell(headerRow, "কার্য দিবস", true, 150);
+            addCell(headerRow, "সর্বমোট", true, -2);
+            addCell(headerRow, " জিপিএ ", true, -2);
+            addCell(headerRow, " গ্রেড ", true, -2);
+            addCell(headerRow, "অবস্থান", true, -2);
+            addCell(headerRow, "কার্য দিবস", true, -2);
             rankingTable.addView(headerRow);
         };
 
         if (cursor != null && cursor.moveToFirst()) {
+            // ... (এখানে আপনার ক্যালকুলেশন লজিকগুলো আগের মতোই আছে) ...
             int totalExaminees = 0, passCount = 0;
             do {
                 String marks = cursor.getString(2);
@@ -354,24 +429,15 @@ public class RankingActivity extends AppCompatActivity {
 
             for (int i = 0; i < rankingList.size(); i++) {
                 if (studentInCurrentPage == currentPageLimit) {
-
-                    // ১. শেষ ছাত্রের নিচের কালো বর্ডার লাইন
+                    // (পেজ ব্রেকিং লজিক আগের মতোই থাকবে)
                     View line = new View(this);
                     line.setBackgroundColor(Color.BLACK);
                     rankingTable.addView(line, new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, 2));
 
-                    // ২. গ্যাপ তৈরির জন্য স্পেসার ভিউ (সরাসরি TableLayout এ যুক্ত করা হয়েছে)
-                    // এটি TableRow নয়, তাই এটি কলামের ডান পাশের বর্ডারকে মানবে না
                     View spacerView = new View(this);
                     spacerView.setBackgroundColor(Color.WHITE);
-
-                    // এখানে LayoutParams সরাসরি TableLayout এর জন্য দেওয়া হয়েছে
-                    TableLayout.LayoutParams spacerParams = new TableLayout.LayoutParams(
-                            TableLayout.LayoutParams.MATCH_PARENT, 150);
-
-                    // নেগেটিভ মার্জিন ব্যবহার করা হয়েছে যেন ডান পাশের প্যাডিংকে ঢেকে দেয়
+                    TableLayout.LayoutParams spacerParams = new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, 150);
                     spacerParams.setMargins(0, 0, -10, 0);
-
                     rankingTable.addView(spacerView, spacerParams);
 
                     addHeaderToTable.run();
@@ -382,39 +448,41 @@ public class RankingActivity extends AppCompatActivity {
                 StudentModel s = rankingList.get(i);
                 TableRow row = new TableRow(this);
 
-                addCell(row, convertToBengali(s.roll), false, 40);
-                addCell(row, s.name, false, 200);
+                // --- ডাটা রো-তে ডাইনামিক -২ পরিবর্তন ---
+                addCell(row, convertToBengali(s.roll), false, -2);
+                addCell(row, s.name, false, -2);
 
                 for (String m : s.marks.split(",")) {
-                    addCell(row, m.trim().equals("×") ? "×" : convertToBengali(m.trim()), false, 80);
+                    addCell(row, m.trim().equals("×") ? "×" : convertToBengali(m.trim()), false, -2);
                 }
 
                 if (s.isFullyAbsent) {
-                    for(int j=0; j<4; j++) addCell(row, "×", false, j<2?100:80);
+                    for(int j=0; j<4; j++) addCell(row, "×", false, -2);
                 } else if (s.isFails) {
-                    addCellWithColor(row, "ফেল", Color.RED, 100);
-                    addCellWithColor(row, "Fail", Color.RED, 100);
-                    addCellWithColor(row, "F", Color.RED, 80);
-                    addCell(row, "০", false, 80);
+                    addCellWithColor(row, "ফেল", Color.RED, -2);
+                    addCellWithColor(row, "Fail", Color.RED, -2);
+                    addCellWithColor(row, "F", Color.RED, -2);
+                    addCell(row, "০", false, -2);
                 } else {
-                    addCell(row, convertToBengali(s.total), false, 100);
-                    addCell(row, String.format("%.2f", s.gpa), false, 100);
-                    addCell(row, s.grade, false, 80);
+                    addCell(row, convertToBengali(s.total), false, -2);
+                    addCell(row, String.format("%.2f", s.gpa), false, -2);
+                    addCell(row, s.grade, false, -2);
 
                     int pos = calculatePosition(s, rankingList);
                     String bPos = convertToBengali(pos);
-                    if (pos == 1) addCellWithBG(row, bPos, Color.parseColor("#A9A9A9"), 80);
-                    else if (pos == 2) addCellWithBG(row, bPos, Color.parseColor("#C0C0C0"), 80);
-                    else if (pos == 3) addCellWithBG(row, bPos, Color.parseColor("#D3D3D3"), 80);
-                    else addCell(row, bPos, false, 80);
+                    if (pos == 1) addCellWithBG(row, bPos, Color.parseColor("#A9A9A9"), -2);
+                    else if (pos == 2) addCellWithBG(row, bPos, Color.parseColor("#C0C0C0"), -2);
+                    else if (pos == 3) addCellWithBG(row, bPos, Color.parseColor("#D3D3D3"), -2);
+                    else addCell(row, bPos, false, -2);
                 }
 
-                addCell(row, (i == 6) ? "পরিচালকের স্বাক্ষর" : "", false, 150);
+                addCell(row, (i == 6) ? "পরিচালকের স্বাক্ষর" : "", false, -2);
                 rankingTable.addView(row);
                 studentInCurrentPage++;
             }
         }
     }
+
 
 
 
@@ -456,24 +524,32 @@ public class RankingActivity extends AppCompatActivity {
 
     private TextView createStyledTextView(String text, boolean isHeader, int widthDp, int textColor) {
         TextView tv = new TextView(this);
-
-        // ১. টেক্সট সেটআপ (আপনার সেই \n সহ টেক্সটই থাকবে)
         tv.setText(text);
-        tv.setPadding(2, 2, 2, 2);
+
+        // ৫ডিপি প্যাডিং
+        int paddingPx = (int) (5 * getResources().getDisplayMetrics().density);
+        tv.setPadding(paddingPx, 2, paddingPx, 2);
         tv.setGravity(Gravity.CENTER);
 
-        // ২. ফিক্সড উইথ সেট করা যাতে ঘর লম্বা না হয়
-        int widthPx = (int) (widthDp * getResources().getDisplayMetrics().density);
-        tv.setLayoutParams(new TableRow.LayoutParams(widthPx, TableRow.LayoutParams.MATCH_PARENT));
+        // ডাইনামিক উইডথ লজিক
+        TableRow.LayoutParams params;
+        if (widthDp == -2) {
+            params = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.MATCH_PARENT);
+        } else {
+            int widthPx = (int) (widthDp * getResources().getDisplayMetrics().density);
+            params = new TableRow.LayoutParams(widthPx, TableRow.LayoutParams.MATCH_PARENT);
+        }
+        tv.setLayoutParams(params);
 
-        // ৩. মাল্টি-লাইন সাপোর্ট নিশ্চিত করা
         tv.setSingleLine(false);
-        tv.setMaxLines(3); // সর্বোচ্চ ৩ লাইন পর্যন্ত যাবে
-        tv.setHorizontallyScrolling(false); // ডানে লম্বা হতে বাধা দিবে
+        tv.setMaxLines(3);
+        tv.setHorizontallyScrolling(false);
 
+        // ব্যাকগ্রাউন্ড এবং কালার লজিক
         if (isHeader) {
             android.graphics.drawable.GradientDrawable gd = new android.graphics.drawable.GradientDrawable();
-            gd.setColor(Color.parseColor("#888888"));
+            // আমি এখানে আপনার চাওয়া হালকা গাঢ় রঙ (#D1D1D1) বসিয়ে দিয়েছি
+            gd.setColor(Color.parseColor("#D1D1D1"));
             gd.setStroke(1, Color.parseColor("#444444"));
             tv.setBackground(gd);
         } else {
@@ -481,24 +557,31 @@ public class RankingActivity extends AppCompatActivity {
         }
 
         tv.setTextColor(textColor);
-        tv.setTextSize(10); // লেখা বেশি হলে সাইজ একটু কমিয়ে ১০ করা ভালো
 
-        // ৪. সরাসরি টাইপফেস সেট করা (যা \n থাকলেও কাজ করবে)
+        // --- সংশোধন: টেক্সট সাইজ লজিক এখানে যুক্ত করা হলো ---
+        if (isHeader) {
+            tv.setTextSize(35); // শিরোনাম বা সাবজেক্টের নাম বড় হবে
+        } else {
+            tv.setTextSize(30); // ছাত্রদের রোল, নাম ও নম্বর বড় হবে
+        }
+
+        // ফন্ট সেট করা
         try {
             Typeface tf = androidx.core.content.res.ResourcesCompat.getFont(this, R.font.sutonnymjregular);
             tv.setTypeface(tf);
         } catch (Exception e) {
-            // ফন্ট না পেলে অল্টারনেট মেথড
             FontUtils.applyCustomFont(this, tv, text);
         }
 
-        // ৫. হেডার বোল্ড করা
         if (isHeader) {
             tv.setTypeface(tv.getTypeface(), Typeface.BOLD);
         }
 
         return tv;
     }
+
+
+
 
 
 

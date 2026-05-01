@@ -20,7 +20,15 @@ public class MadrasaActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        androidx.activity.EdgeToEdge.enable(this);
         setContentView(R.layout.activity_madrasa);
+
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.madrasaMainLayout), (v, insets) -> {
+            androidx.core.graphics.Insets systemBars = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
 
         dbHelper = new DBHelper(this);
         mainTable = findViewById(R.id.mainTable);
