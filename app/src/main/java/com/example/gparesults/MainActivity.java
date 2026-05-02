@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -33,6 +34,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -154,6 +156,9 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+
+
     }
 
     // রেজিস্ট্রেশন ডায়ালগ
@@ -161,7 +166,12 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("আপনার নাম লিখুন");
         builder.setCancelable(false);
+
         final EditText input = new EditText(MainActivity.this);
+
+        // কার্সার বা ঝিকঝিক করার জন্য ফোকাস দেওয়া
+        input.requestFocus();
+
         builder.setView(input);
         builder.setPositiveButton("সেভ করুন", (dialog, which) -> {
             String userName = input.getText().toString();
@@ -174,8 +184,16 @@ public class MainActivity extends AppCompatActivity {
                 recreate();
             }
         });
-        builder.show();
+
+        // ডায়ালগটি তৈরি করা
+        AlertDialog alertDialog = builder.create();
+
+        // কীবোর্ড স্বয়ংক্রিয়ভাবে দেখানোর জন্য এই অংশটি জরুরি
+        Objects.requireNonNull(alertDialog.getWindow()).setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+
+        alertDialog.show();
     }
+
 
     // পেমেন্ট ডায়ালগ
     private void showPaymentDialog() {

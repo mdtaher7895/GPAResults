@@ -64,6 +64,7 @@ public class RankingActivity extends AppCompatActivity {
         tvPassRate = findViewById(R.id.tvPassRate);
         etClassName = findViewById(R.id.etClassName);
         mainContent = findViewById(R.id.main_content);
+        if (mainContent != null) mainContent.setFocusableInTouchMode(true);
 
         // --- নতুন লজিক শুরু ---
         View rootLayout = findViewById(R.id.rootLayout);
@@ -79,6 +80,7 @@ public class RankingActivity extends AppCompatActivity {
             }
         };
 
+
         // বাইরে টাচ করলে কারসার লুকানো
         rootLayout.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
@@ -93,15 +95,65 @@ public class RankingActivity extends AppCompatActivity {
             return false;
         });
 
-        // ৫ সেকেন্ড টাইমার লজিক (যে কোনো এডিট টেক্সটে টাচ করলে টাইমার শুরু হবে)
+
+        // ৫ সেকেন্ড টাইমার এবং স্ক্রিন লক লজিক
+        // ১. HorizontalScrollView খুঁজে বের করা এবং স্ক্রলবার কালার করা
+        final android.widget.HorizontalScrollView hsv = findViewById(R.id.horizontalScrollView);
+
+        if (hsv != null) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                android.graphics.drawable.Drawable thumb = hsv.getHorizontalScrollbarThumbDrawable();
+                if (thumb != null) {
+                    thumb.setTint(android.graphics.Color.BLACK);
+                }
+            }
+        }
+
+        float offsetPx = 50 * getResources().getDisplayMetrics().density;
+
+        // ২. শুরুতে টেবিল পজিশন ঠিক করা
+        mainContent.post(() -> {
+            mainContent.setPivotX(mainContent.getWidth() / 2f);
+            mainContent.setPivotY(0);
+            mainContent.setScaleX(0.2f);
+            mainContent.setScaleY(0.2f);
+            mainContent.setTranslationY(offsetPx);
+
+            if (hsv != null) {
+                int scrollX = (int) ((mainContent.getWidth() - hsv.getWidth()) / 2);
+                hsv.scrollTo(scrollX, 0);
+            }
+        });
+
+        // ৩. এন্টার চাপলে কারসার লুকানোর লজিক (Editor Action)
+        TextView.OnEditorActionListener editorActionListener = (v, actionId, event) -> {
+            // এন্টার বা ডান বাটনে ক্লিক করলে
+            v.clearFocus(); // ফোকাস সরিয়ে কারসার লুকানো
+            android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.hideSoftInputFromWindow(v.getWindowToken(), 0); // কিবোর্ড লুকানো
+            }
+            return true;
+        };
+
+        // ৪. ফোকাস লিসেনার
         View.OnFocusChangeListener focusListener = (v, hasFocus) -> {
             if (hasFocus) {
                 handler.removeCallbacks(autoHideCursor);
-                handler.postDelayed(autoHideCursor, 5000); // ৫০০০ মিলিসেকেন্ড = ৫ সেকেন্ড
+                handler.postDelayed(autoHideCursor, 20000);
+
+                mainContent.setPivotX(mainContent.getWidth() / 2f);
+                mainContent.setPivotY(0);
+                mainContent.setScaleX(0.2f);
+                mainContent.setScaleY(0.2f);
+                mainContent.setTranslationY(offsetPx);
             } else {
                 handler.removeCallbacks(autoHideCursor);
             }
         };
+
+
+
 
         // আপনার এডিট টেক্সটগুলোতে এই টাইমারটি সেট করা (অন্যান্য গুলোর জন্যও এটি কাজ করবে)
         etClassName.setOnFocusChangeListener(focusListener);
@@ -134,7 +186,7 @@ public class RankingActivity extends AppCompatActivity {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
             scaleFactor *= detector.getScaleFactor();
-            scaleFactor = Math.max(0.5f, Math.min(scaleFactor, 2.0f));
+            scaleFactor = Math.max(0.2f, Math.min(scaleFactor, 0.5f));
             mainContent.setScaleX(scaleFactor);
             mainContent.setScaleY(scaleFactor);
             mainContent.setPivotX(0);
@@ -144,8 +196,10 @@ public class RankingActivity extends AppCompatActivity {
     }
 
     private void generatePDFFromView(View view) {
-        view.setScaleX(1.0f);
-        view.setScaleY(1.0f);
+        view.setScaleX(0.5f);
+        view.setScaleY(0.5f);
+
+        view.setBackgroundColor(Color.WHITE);
 
         PrintAttributes attributes = new PrintAttributes.Builder()
                 .setMediaSize(PrintAttributes.MediaSize.ISO_A4.asLandscape())
@@ -251,6 +305,11 @@ public class RankingActivity extends AppCompatActivity {
                 callback.onWriteFinished(new PageRange[]{PageRange.ALL_PAGES});
             }
         }, attributes);
+
+        new android.os.Handler().postDelayed(() -> {
+            view.setBackgroundColor(Color.parseColor("#FAFAF0")); // অথবা আপনার প্রিয় কালার
+        }, 1000);
+
     }
 
 
@@ -284,9 +343,9 @@ public class RankingActivity extends AppCompatActivity {
                 FontUtils.applyCustomFont(this, tv, data[i][j]);
 
                 // লাইনের উচ্চতা/স্পেস কমাতে ২ এবং ৮ প্যাডিং ব্যবহার করা হয়েছে
-                tv.setPadding(35, 0, 35, 0);
+                tv.setPadding(30, 0, 30, 0);
                 tv.setGravity(Gravity.CENTER);
-                tv.setTextSize(15);
+                tv.setTextSize(40);
                 tv.setTextColor(Color.BLACK);
                 tv.setBackgroundResource(R.drawable.table_border_header);
 
@@ -321,9 +380,9 @@ public class RankingActivity extends AppCompatActivity {
                 // সাধারণ ফন্ট অ্যাপ্লাই
                 FontUtils.applyCustomFont(this, tv, gradeData[i][j]);
 
-                tv.setPadding(25, 4, 25, 4);
+                tv.setPadding(50, 4, 50, 4);
                 tv.setGravity(Gravity.CENTER);
-                tv.setTextSize(15);
+                tv.setTextSize(40);
                 tv.setTextColor(Color.BLACK);
 
                 // কাস্টম বর্ডার সেট করা
@@ -362,7 +421,7 @@ public class RankingActivity extends AppCompatActivity {
         String[] subjectNames = {
                 "  আরবী  ", "  বাংলা  ", "  ইংরেজি  ", "  গণিত  ",
                 "হাদিস শরীফ ও\nআস: হুসনা", "কালিমা ও\nমাসায়িল",
-                "আদ: সালাত ও\nআদ:মাসনোনা", "কুরআন ও\nতাজবীদ",
+                "আদ: সালাত ও\nআদ: মাসসূনা", "কুরআন ও\nতাজবীদ",
                 "প: সমাজ বিজ্ঞান\nও সাধারণ জ্ঞান"
         };
 
@@ -371,7 +430,7 @@ public class RankingActivity extends AppCompatActivity {
             TableRow headerRow = new TableRow(this);
             headerRow.setBackgroundColor(Color.parseColor("#D1D1D1"));
             addCell(headerRow, " রোল ", true, -2);
-            addCell(headerRow, " ছাত্রদের নাম ", true, -2);
+            addCell(headerRow, " পরীক্ষারর্থীদের নাম ", true, -2);
             for (int i = 0; i < subjectCount; i++) {
                 if (i < subjectNames.length) {
                     addCell(headerRow, subjectNames[i], true, -2);
@@ -418,8 +477,8 @@ public class RankingActivity extends AppCompatActivity {
             } while (cursor.moveToNext());
             cursor.close();
 
-            FontUtils.applyCustomFont(this, tvTotalStudents, convertToBengali(totalExaminees) + " জন");
-            if (totalExaminees > 0) FontUtils.applyCustomFont(this, tvPassRate, convertToBengali(String.format("%.2f", ((double)passCount/totalExaminees)*100)) + "%");
+            FontUtils.applyCustomFont(this, tvTotalStudents, " " + convertToBengali(totalExaminees) + " জন ");
+            if (totalExaminees > 0) FontUtils.applyCustomFont(this, tvPassRate, convertToBengali(String.format(" %.2f ", ((double)passCount/totalExaminees)*100)) + " % ");
             setupSummeryTable(summeryTable, g5, gA, gAm, gB, gC, gD, gF);
 
             addHeaderToTable.run();
@@ -522,8 +581,9 @@ public class RankingActivity extends AppCompatActivity {
         row.addView(createStyledTextView(text, false, widthDp, color));
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private TextView createStyledTextView(String text, boolean isHeader, int widthDp, int textColor) {
-        TextView tv = new TextView(this);
+        final TextView tv = new TextView(this); // final করা হয়েছে যেন লিসেনারে ব্যবহার করা যায়
         tv.setText(text);
 
         // ৫ডিপি প্যাডিং
@@ -548,37 +608,54 @@ public class RankingActivity extends AppCompatActivity {
         // ব্যাকগ্রাউন্ড এবং কালার লজিক
         if (isHeader) {
             android.graphics.drawable.GradientDrawable gd = new android.graphics.drawable.GradientDrawable();
-            // আমি এখানে আপনার চাওয়া হালকা গাঢ় রঙ (#D1D1D1) বসিয়ে দিয়েছি
             gd.setColor(Color.parseColor("#D1D1D1"));
             gd.setStroke(1, Color.parseColor("#444444"));
             tv.setBackground(gd);
+            tv.setTextSize(45);
+            tv.setTypeface(null, Typeface.BOLD);
+
+            // --- নতুন লজিক: ডাবল টাচ লিসেনার ---
+            tv.setOnTouchListener(new View.OnTouchListener() {
+                private long lastClickTime = 0;
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                        long clickTime = System.currentTimeMillis();
+                        if (clickTime - lastClickTime < 300) { // ৩০০ মিলিসেকেন্ডের মধ্যে দুইবার টাচ
+                            showEditSubjectDialog(tv); // নাম পরিবর্তনের বক্স খুলবে
+                        }
+                        lastClickTime = clickTime;
+                    }
+                    return true;
+                }
+            });
+
         } else {
             tv.setBackgroundResource(R.drawable.table_border_header);
+            tv.setTextSize(35);
         }
 
         tv.setTextColor(textColor);
 
-        // --- সংশোধন: টেক্সট সাইজ লজিক এখানে যুক্ত করা হলো ---
-        if (isHeader) {
-            tv.setTextSize(35); // শিরোনাম বা সাবজেক্টের নাম বড় হবে
-        } else {
-            tv.setTextSize(30); // ছাত্রদের রোল, নাম ও নম্বর বড় হবে
-        }
-
-        // ফন্ট সেট করা
+        // ফন্ট সেট করা (বাংলা ও ইংরেজির জন্য আলাদা)
         try {
-            Typeface tf = androidx.core.content.res.ResourcesCompat.getFont(this, R.font.sutonnymjregular);
-            tv.setTypeface(tf);
+            boolean isEnglish = text.matches(".*[a-zA-Z].*");
+            Typeface tf;
+            if (isEnglish) {
+                // ইংরেজির জন্য Times New Roman (ফাইল নাম চেক করে নেবেন)
+                tf = androidx.core.content.res.ResourcesCompat.getFont(this, R.font.timesnewromanregular);
+            } else {
+                // বাংলার জন্য SutonnyMJ
+                tf = androidx.core.content.res.ResourcesCompat.getFont(this, R.font.sutonnymjregular);
+            }
+            if (tf != null) tv.setTypeface(tf, isHeader ? Typeface.BOLD : Typeface.NORMAL);
         } catch (Exception e) {
             FontUtils.applyCustomFont(this, tv, text);
         }
 
-        if (isHeader) {
-            tv.setTypeface(tv.getTypeface(), Typeface.BOLD);
-        }
-
         return tv;
     }
+
 
 
 
@@ -595,4 +672,25 @@ public class RankingActivity extends AppCompatActivity {
     }
 
 
+    private void showEditSubjectDialog(final TextView textView) {
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
+        builder.setTitle("সাবজেক্টের নাম পরিবর্তন করুন");
+
+        final EditText input = new EditText(this);
+        input.setText(textView.getText().toString());
+        input.setPadding(50, 40, 50, 40);
+        builder.setView(input);
+
+        builder.setPositiveButton("ওকে", (dialog, which) -> {
+            String newName = input.getText().toString();
+            textView.setText(newName); // টেবিলের নাম আপডেট হবে
+        });
+
+        builder.setNegativeButton("বাতিল", (dialog, which) -> dialog.cancel());
+        builder.show();
+    }
+
+
 }
+
+

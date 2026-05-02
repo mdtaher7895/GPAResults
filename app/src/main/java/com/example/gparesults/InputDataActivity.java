@@ -38,7 +38,7 @@ public class InputDataActivity extends AppCompatActivity {
     private String[] predefinedSubjects = {
             "আরবী", "বাংলা", "ইংরেজি", "গণিত",
             "হাদিস ও\nআস: হুসনা", "কালিমা\nমাসায়িল",
-            "আদ: সালাত\nআদ:মাসনোনা", "কুরআন ও\nতাজবীদ",
+            "আদ: সালাত\nআদ: মাসনূনা", "কুরআন ও\nতাজবীদ",
             "প: পরিবেশ ও\nসাধারণ জ্ঞান"
     };
 

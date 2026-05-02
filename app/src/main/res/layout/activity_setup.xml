@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:id="@+id/setupRoot"
+    android:background="#888484">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="প্রতিষ্ঠানের তথ্য সেটআপ করুন"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="#333"
+        android:gravity="center"
+        android:layout_marginBottom="30dp"/>
+
+    <EditText
+        android:id="@+id/etInstName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="মাদ্রাসার নাম"
+        android:background="@android:drawable/editbox_background"
+        android:padding="12dp"
+        android:layout_marginBottom="15dp"
+        android:inputType="text"/>
+
+    <EditText
+        android:id="@+id/etAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="ঠিকানা"
+        android:background="@android:drawable/editbox_background"
+        android:padding="12dp"
+        android:layout_marginBottom="15dp"
+        android:inputType="text"/>
+
+    <EditText
+        android:id="@+id/etExamName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="পরীক্ষার নাম"
+        android:background="@android:drawable/editbox_background"
+        android:padding="12dp"
+        android:layout_marginBottom="15dp"
+        android:inputType="text"/>
+
+    <EditText
+        android:id="@+id/etClassName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="শ্রেণী"
+        android:background="@android:drawable/editbox_background"
+        android:padding="12dp"
+        android:layout_marginBottom="30dp"
+        android:inputType="text"/>
+
+    <Button
+        android:id="@+id/btnSubmit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="তথ্য সেভ করুন এবং রেজাল্ট দেখুন"
+        android:backgroundTint="#2E7D32"
+        android:textColor="#FFF"
+        android:padding="15dp"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="10dp"/>
+
+    <Button
+        android:id="@+id/btnNext"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:text="পরবর্তী"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#1B5E20"
+        android:textStyle="bold" />
+
+</LinearLayout>

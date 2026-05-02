@@ -20,7 +20,7 @@
     <!-- top এবং bottom আরও ১ ডিপি কমিয়ে ১ ডিপি করা হলো -->
     <item android:bottom="3dp" android:right="6dp" android:top="1dp" android:left="6dp">
         <shape>
-            <solid android:color="#1D1C1C" />
+            <solid android:color="#272525" />
             <corners android:radius="8dp" />
         </shape>
     </item>
