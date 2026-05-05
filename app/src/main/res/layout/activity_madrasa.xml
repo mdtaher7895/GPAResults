@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F4F7F6"
+    android:background="#888F8F"
     android:id="@+id/madrasaMainLayout"
     tools:context=".MadrasaActivity">
 
@@ -37,11 +37,11 @@
             android:orientation="horizontal">
 
             <Button
-                android:id="@+id/btnBackToInput"
+                android:id="@+id/allDelete"
                 android:layout_width="0dp"
                 android:layout_height="55dp"
                 android:layout_weight="1"
-                android:text="পিছিয়ে যান"
+                android:text="অল ডিলিট"
                 android:textColor="#FFFFFF"
                 android:backgroundTint="#455A64"
                 android:layout_marginEnd="5dp" />

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="4dp"
+    android:weightSum="10"
+    android:background="@android:color/white">
+
+    <TextView
+        android:id="@+id/tvRollRow"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1.5"
+        android:background="@drawable/cell_border"
+        android:gravity="center"
+        android:padding="10dp"
+        android:text="০১"
+        android:textColor="#000000"
+        android:textSize="16sp" />
+
+    <EditText
+        android:id="@+id/etNameRow"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="5.5"
+        android:background="@drawable/cell_border"
+        android:hint="নাম লিখুন"
+        android:padding="8dp"
+        android:singleLine="true"
+        android:textSize="14sp"
+        android:visibility="gone" /> <EditText
+    android:id="@+id/etMarksRow"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="3"
+    android:background="@drawable/cell_border"
+    android:gravity="center"
+    android:hint="---"
+    android:inputType="numberDecimal"
+    android:padding="8dp"
+    android:textSize="16sp" />
+
+</LinearLayout>

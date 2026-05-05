@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="20dp"
+    app:cardCornerRadius="15dp"
+    app:cardElevation="8dp"
+    app:cardBackgroundColor="#D1D1D1">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="25dp">
+
+        <TextView
+            android:id="@+id/dialogTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="বিকল্প নির্বাচন করুন"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:gravity="center"
+            android:fontFamily="@font/sutonnymjregular"
+            android:layout_marginBottom="12dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="আপনি কি এই পরীক্ষার্থীর তথ্য এডিট করতে চান, নাকি ডিলিট?"
+            android:textSize="18sp"
+            android:textColor="#333333"
+            android:gravity="center"
+            android:fontFamily="@font/sutonnymjregular"
+            android:layout_marginBottom="25dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <Button
+                android:id="@+id/btnDelete"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:textAllCaps="false"
+                android:padding="2dp"
+                android:backgroundTint="#908484"
+                android:layout_weight="1"
+                android:text=" ডিলিট করুন "
+                android:textColor="#000000"
+                android:textSize="25sp"
+                android:layout_marginEnd="8dp"
+                android:fontFamily="@font/sutonnymjregular"/>
+
+            <Button
+                android:id="@+id/btnEdit"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:padding="2dp"
+                android:backgroundTint="#908484"
+                android:text=" এডিট করুন "
+                android:textColor="#000000"
+                android:textSize="25sp"
+                android:layout_marginStart="8dp"
+                android:fontFamily="@font/sutonnymjregular"/>
+
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

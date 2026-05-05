@@ -13,6 +13,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,6 +40,8 @@ import java.util.Objects;
 public class MainActivity extends AppCompatActivity {
 
     private Spinner subjectSpinner;
+    private Spinner classSpinner; // নতুন স্পিনার
+
     private boolean isApproved = false; // ইউজারের স্ট্যাটাস ট্র্যাক করার জন্য
 
     @Override
@@ -55,7 +58,10 @@ public class MainActivity extends AppCompatActivity {
         });
 
         Button btnMadrasa = findViewById(R.id.btnMadrasa);
+        Button btnSaved = findViewById(R.id.btnSaved);
         subjectSpinner = findViewById(R.id.subjectSpinner);
+        classSpinner = findViewById(R.id.classSpinner);
+
 
         // --- ফায়ারবেস কন্ট্রোল শুরু ---
         @SuppressLint("HardwareIds")
@@ -91,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
         });
         // --- ফায়ারবেস কন্ট্রোল শেষ ---
 
-        // ১. সাবজেক্ট লিস্ট তৈরি
+        // ১. সাবজেক্ট লিস্ট তৈরি (সবার আগে এটি থাকবে)
         List<String> subList = new ArrayList<>();
         for (int i = 4; i <= 20; i++) {
             String bnNum = String.valueOf(i)
@@ -102,7 +108,32 @@ public class MainActivity extends AppCompatActivity {
             subList.add(bnNum + " টি বিষয়ের জন্য");
         }
 
-        // ২. কাস্টম অ্যাডাপ্টার
+        // ২. শ্রেণির লিস্ট তৈরি
+        List<String> classList = new ArrayList<>();
+        String[] classes = {
+                "নার্সারি", "প্রথম শ্রেণি", "দ্বিতীয় শ্রেণি", "তৃতীয় শ্রেণি", "চতুর্থ শ্রেণি",
+                "পঞ্চম শ্রেণি", "ষষ্ঠ শ্রেণি", "সপ্তম শ্রেণি", "অষ্টম শ্রেণি", "নবম শ্রেণি",
+                "দশম শ্রেণি", "একাদশ শ্রেণি", "দ্বাদশ শ্রেণি", "ত্রয়োদশ শ্রেণি", "চতুর্দশ শ্রেণি",
+                "পঞ্চদশ শ্রেণি", "ষোড়শ শ্রেণি", "সপ্তদশ শ্রেণি", "অষ্টাদশ শ্রেণি", "উনবিংশ শ্রেণি", "বিংশ শ্রেণি"
+        };
+        for (String c : classes) { classList.add(c); }
+
+        // ৩. শ্রেণির স্পিনারের জন্য অ্যাডাপ্টার
+        ArrayAdapter<String> classAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, classList) {
+            @NonNull
+            @Override
+            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+                View v = super.getView(position, convertView, parent);
+                TextView tv = (TextView) v;
+                tv.setTextColor(Color.BLACK);
+                com.example.gparesults.FontUtils.applyCustomFont(getContext(), tv, tv.getText().toString());
+                return v;
+            }
+        };
+        classAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        classSpinner.setAdapter(classAdapter);
+
+        // ৪. সাবজেক্ট স্পিনারের জন্য অ্যাডাপ্টার (এখানে এখন আর subList এরর আসবে না)
         ArrayAdapter<String> subAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, subList) {
             @NonNull
             @Override
@@ -114,10 +145,11 @@ public class MainActivity extends AppCompatActivity {
                 return v;
             }
         };
-        subAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
-        // ৩. স্পিনারে অ্যাডাপ্টার সেট করা
+
+        subAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         subjectSpinner.setAdapter(subAdapter);
+
         subjectSpinner.setSelection(0); // ডিফল্ট ৪টি বিষয়
 
         // ৪. স্পিনারের লজিক (পেইড/ফ্রি পপ-আপ)
@@ -137,62 +169,111 @@ public class MainActivity extends AppCompatActivity {
         btnMadrasa.setOnClickListener(v -> {
             int position = subjectSpinner.getSelectedItemPosition();
             int subjects = position + 4;
+            String selectedClass = classSpinner.getSelectedItem().toString(); // এই লাইনটি যোগ করুন
 
-            // যদি ৪ বা ৫ সাবজেক্ট হয়, তবে সরাসরি যাবে
-            if (position <= 1) {
-                Intent intent = new Intent(MainActivity.this, InputDataActivity.class);
-                intent.putExtra("SUB_COUNT", subjects);
+            Intent intent = new Intent(MainActivity.this, InputDataActivity.class);
+            intent.putExtra("SUB_COUNT", subjects);
+            intent.putExtra("CLASS_NAME", selectedClass); // এই লাইনটি ডাটা পাঠাবে
+
+            if (position <= 1 || isApproved) {
                 startActivity(intent);
-            }
-            // যদি ৬ বা তার বেশি হয়, তবে অ্যাপ্রুভড চেক করবে
-            else {
-                if (isApproved) {
-                    Intent intent = new Intent(MainActivity.this, InputDataActivity.class);
-                    intent.putExtra("SUB_COUNT", subjects);
-                    startActivity(intent);
-                } else {
-                    showPaymentDialog();
-                    subjectSpinner.setSelection(1);
-                }
+            } else {
+                showPaymentDialog();
+                subjectSpinner.setSelection(1);
             }
         });
+
+
+
+
+
+        btnSaved.setOnClickListener(v -> {
+            // সেভ করা ফাইলগুলো দেখার জন্য টোস্ট মেসেজ (আপাতত)
+            Toast.makeText(MainActivity.this, "সেভ করা ফাইল দেখার সুবিধা শীঘ্রই আসছে!", Toast.LENGTH_SHORT).show();
+
+            // ভবিষ্যৎ লজিক এখানে লিখবেন (যেমন অন্য কোনো অ্যাক্টিভিটিতে যাওয়া)
+            Intent intent = new Intent(MainActivity.this, SavedListActivity.class);
+            startActivity(intent);
+        });
+
+
 
 
 
     }
 
     // রেজিস্ট্রেশন ডায়ালগ
+    private boolean isPhoneWarningShown = false; // এটি মেথডের বাইরে বা উপরে ঘোষণা করতে পারেন
+
     private void showRegistrationDialog(DatabaseReference dbRef) {
+        isPhoneWarningShown = false; // প্রতিবার ডায়ালগ ওপেন হলে এটি রিসেট হবে
+
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setTitle("আপনার নাম লিখুন");
+        builder.setTitle("রেজিস্ট্রেশন করুন");
         builder.setCancelable(false);
 
-        final EditText input = new EditText(MainActivity.this);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(60, 40, 60, 20);
 
-        // কার্সার বা ঝিকঝিক করার জন্য ফোকাস দেওয়া
-        input.requestFocus();
+        final EditText etName = new EditText(this);
+        etName.setHint("আপনার পূর্ণ নাম বা\n(প্রতিষ্ঠানের নাম)");
+        layout.addView(etName);
 
-        builder.setView(input);
-        builder.setPositiveButton("সেভ করুন", (dialog, which) -> {
-            String userName = input.getText().toString();
-            if (!userName.isEmpty()) {
-                dbRef.child("name").setValue(userName);
-                dbRef.child("access").setValue("pending");
-                dbRef.child("model").setValue(Build.MODEL);
-            } else {
-                Toast.makeText(MainActivity.this, "নাম লেখা বাধ্যতামূলক", Toast.LENGTH_SHORT).show();
-                recreate();
-            }
-        });
+        final EditText etPhone = new EditText(this);
+        etPhone.setHint("ফোন নম্বর");
+        etPhone.setInputType(android.text.InputType.TYPE_CLASS_PHONE);
+        layout.addView(etPhone);
 
-        // ডায়ালগটি তৈরি করা
+        builder.setView(layout);
+        builder.setPositiveButton("সেভ করুন", null);
+
         AlertDialog alertDialog = builder.create();
-
-        // কীবোর্ড স্বয়ংক্রিয়ভাবে দেখানোর জন্য এই অংশটি জরুরি
-        Objects.requireNonNull(alertDialog.getWindow()).setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        if (alertDialog.getWindow() != null) {
+            alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        }
 
         alertDialog.show();
+        etName.requestFocus();
+
+        alertDialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String userName = etName.getText().toString().trim();
+            String userPhone = etPhone.getText().toString().trim();
+
+            // ১. নামের শর্ত (সবসময় বাধ্যতামূলক)
+            String[] words = userName.split("\\s+");
+            boolean isBengali = userName.matches("^[\\u0980-\\u09FF\\s]+$");
+
+            if (userName.isEmpty()) {
+                Toast.makeText(MainActivity.this, "নাম লেখা বাধ্যতামূলক", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (!isBengali || words.length < 2) {
+                Toast.makeText(MainActivity.this, "নাম অবশ্যই বাংলায় এবং কমপক্ষে ২ শব্দের হতে হবে", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // ২. ফোন নম্বরের বিশেষ লজিক
+            if (userPhone.isEmpty() && !isPhoneWarningShown) {
+                // প্রথমবার খালি থাকলে সতর্কবার্তা দেবে
+                Toast.makeText(MainActivity.this, "আপনি ফোন নম্বর দিন।", Toast.LENGTH_LONG).show();
+                isPhoneWarningShown = true; // একবার সতর্ক করা হয়েছে
+                return;
+            }
+
+            // ৩. সব ঠিক থাকলে বা দ্বিতীয়বার ক্লিক করলে ডাটা সেভ
+            dbRef.child("name").setValue(userName);
+            dbRef.child("phone").setValue(userPhone.isEmpty() ? "Not Provided" : userPhone);
+            dbRef.child("access").setValue("pending");
+            dbRef.child("model").setValue(android.os.Build.MODEL);
+
+            Toast.makeText(MainActivity.this, "তথ্য জমা হয়েছে, অনুমোদনের অপেক্ষা করুন", Toast.LENGTH_LONG).show();
+            alertDialog.dismiss();
+            new android.os.Handler().postDelayed(this::recreate, 1000);
+        });
     }
+
+
 
 
     // পেমেন্ট ডায়ালগ

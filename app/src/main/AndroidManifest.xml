@@ -17,11 +17,17 @@
         android:theme="@style/Theme.GPAResults"
         tools:targetApi="31">
         <activity
-            android:name=".activity_setup"
+            android:name=".SavedListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ActivityBulkEntry"
+            android:exported="false" />
+        <activity
+            android:name=".SetupActivity"
             android:exported="false" />
         <activity
             android:name=".RankingActivity"
-            android:windowSoftInputMode="adjustPan"></activity>
+            android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".InputDataActivity"
             android:exported="false" />

@@ -12,6 +12,7 @@ import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -20,6 +21,9 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,12 +32,15 @@ public class InputDataActivity extends AppCompatActivity {
 
     private LinearLayout dynamicSubjectLayout;
     private int subjectCount;
+    private List<String> subList = new ArrayList<>();
+
+    Spinner spSubjectCount, spClass;
+    private String className;
     private List<EditText> subjectInputList = new ArrayList<>();
     private EditText etRoll, etName;
     private DBHelper dbHelper;
     private boolean isFirstLoad = true;
     private TextView tvTotalMarksDisplay;
-    private Spinner spSubjectCount;
 
     private String[] predefinedSubjects = {
             "আরবী", "বাংলা", "ইংরেজি", "গণিত",
@@ -59,6 +66,9 @@ public class InputDataActivity extends AppCompatActivity {
         dbHelper = new DBHelper(this);
         etRoll = findViewById(R.id.etRoll);
         etName = findViewById(R.id.etName);
+// সঠিক লাইন:
+        className = getIntent().getStringExtra("CLASS_NAME") != null ? getIntent().getStringExtra("CLASS_NAME") : "নার্সারি";
+
 
         etRoll.setTextColor(Color.BLACK);
         etName.setTextColor(Color.BLACK);
@@ -70,40 +80,95 @@ public class InputDataActivity extends AppCompatActivity {
 
         dynamicSubjectLayout = findViewById(R.id.dynamicSubjectLayout);
 
-        // স্পিনার সেটআপ
-        spSubjectCount = new Spinner(this);
-        List<String> countsText = new ArrayList<>();
+        // ১. স্পিনার এবং অ্যাডাপ্টার সেটআপ (XML আইডি অনুযায়ী)
+        spClass = findViewById(R.id.classSpinner);
+        spSubjectCount = findViewById(R.id.subjectSpinner);
+
+        String[] classes = {
+                "নার্সারি", "প্রথম শ্রেণি", "দ্বিতীয় শ্রেণি", "তৃতীয় শ্রেণি", "চতুর্থ শ্রেণি",
+                "পঞ্চম শ্রেণি", "ষষ্ঠ শ্রেণি", "সপ্তম শ্রেণি", "অষ্টম শ্রেণি", "নবম শ্রেণি",
+                "দশম শ্রেণি", "একাদশ শ্রেণি", "দ্বাদশ শ্রেণি", "ত্রয়োদশ শ্রেণি", "চতুর্দশ শ্রেণি",
+                "পঞ্চদশ শ্রেণি", "ষোড়শ শ্রেণি", "সপ্তদশ শ্রেণি", "অষ্টাদশ শ্রেণি", "উনবিংশ শ্রেণি", "বিংশ শ্রেণি"
+        };
+
+        // ১. শ্রেণির স্পিনারের জন্য সুন্দর ডিজাইন যুক্ত অ্যাডাপ্টার
+        ArrayAdapter<String> classAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, classes) {
+            @NonNull
+            @Override
+            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+                View v = super.getView(position, convertView, parent);
+                TextView tv = (TextView) v;
+                tv.setTextColor(Color.BLACK); // লেখা কালো হবে
+                com.example.gparesults.FontUtils.applyCustomFont(getContext(), tv, tv.getText().toString());
+                return v;
+            }
+        };
+        classAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spClass.setAdapter(classAdapter);
+
         for (int i = 4; i <= 20; i++) {
-            countsText.add(i + "টি সাবজেক্ট");
+            String bnNum = String.valueOf(i)
+                    .replace('0','০').replace('1','১').replace('2','২')
+                    .replace('3','৩').replace('4','৪').replace('5','৫')
+                    .replace('6','৬').replace('7','৭').replace('8','৮')
+                    .replace('9','৯');
+            subList.add(bnNum + " টি বিষয়ের জন্য");
         }
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, countsText);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spSubjectCount.setAdapter(adapter);
 
-        // --- পরিবর্তন শুরু: MainActivity বা MadrasaActivity থেকে আসা সাবজেক্ট সংখ্যা ধরা ---
-        int incomingSubCount = getIntent().getIntExtra("SUB_COUNT", 6); // কিছু না থাকলে ডিফল্ট ৬
-        int spinnerPos = incomingSubCount - 4; // কারণ ৪ থেকে লুপ শুরু (index 0 = 4)
-        if (spinnerPos >= 0) {
-            spSubjectCount.setSelection(spinnerPos);
+        // ২. সাবজেক্ট স্পিনারের জন্য সুন্দর ডিজাইন যুক্ত অ্যাডাপ্টার
+        ArrayAdapter<String> subAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, subList) {
+            @NonNull
+            @Override
+            public View getView(int position, View convertView, @NonNull ViewGroup parent) {
+                View v = super.getView(position, convertView, parent);
+                TextView tv = (TextView) v;
+                tv.setTextColor(Color.BLACK); // লেখা কালো হবে
+                com.example.gparesults.FontUtils.applyCustomFont(getContext(), tv, tv.getText().toString());
+                return v;
+            }
+        };
+        subAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spSubjectCount.setAdapter(subAdapter);
+
+
+// ২. ডাটা রিসিভ করা (MainActivity থেকে আসা)
+        className = getIntent().getStringExtra("CLASS_NAME");
+        if (className == null) className = "নার্সারি";
+        int incomingSubCount = getIntent().getIntExtra("SUB_COUNT", 6);
+
+// ৩. স্পিনারে পজিশন অটো-সেট করা
+        for (int i = 0; i < classes.length; i++) {
+            if (classes[i].equals(className)) {
+                spClass.setSelection(i);
+                break;
+            }
         }
-        // --- পরিবর্তন শেষ ---
+        int subPos = incomingSubCount - 4;
+        if (subPos >= 0) spSubjectCount.setSelection(subPos);
 
-        LinearLayout container = findViewById(R.id.containerLayout);
-        container.addView(spSubjectCount, 1);
+        // ৪. লিসেনার সেটআপ (ইউজার পরিবর্তন করলে যা হবে)
+        spClass.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                className = classes[position]; // গ্লোবাল ভেরিয়েবল আপডেট
+            }
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
         spSubjectCount.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String selected = parent.getItemAtPosition(position).toString();
-                subjectCount = Integer.parseInt(selected.replaceAll("[^0-9]", ""));
-                generateSubjectInputs();
+                subjectCount = position + 4;
+                generateSubjectInputs(); // সাবজেক্ট ইনপুট বক্স তৈরি
 
-                // এডিট মোডে ডাটা বসানোর জন্য কল
-                checkEditMode();
+                // এডিট মোড চেক
+                if (getIntent().getBooleanExtra("EDIT_MODE", false) && isFirstLoad) {
+                    checkEditMode();
+                }
             }
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
+            @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
+
 
         // আপনার বাকি সব লজিক (রোল, জাম্প, সেভ) এখানে আগের মতোই থাকবে...
         etRoll.setTag(false);
@@ -138,8 +203,23 @@ public class InputDataActivity extends AppCompatActivity {
         findViewById(R.id.btnViewResults).setOnClickListener(v -> {
             Intent intent = new Intent(InputDataActivity.this, MadrasaActivity.class);
             intent.putExtra("SUB_COUNT", subjectCount);
+            intent.putExtra("CLASS_NAME", className); // নিশ্চিত করুন এই লাইনটি আছে
             startActivity(intent);
         });
+
+
+
+        findViewById(R.id.btnOneSub).setOnClickListener(v -> saveData());
+
+        findViewById(R.id.btnOneSub).setOnClickListener(v -> {
+            Intent intent = new Intent(InputDataActivity.this, SetupActivity.class);
+            intent.putExtra("SUB_COUNT", subjectCount);
+            startActivity(intent);
+        });
+
+
+
+
     }
 
     private void checkEditMode() {
@@ -232,6 +312,30 @@ public class InputDataActivity extends AppCompatActivity {
             tvSubName.setTextColor(Color.BLACK);
             tvSubName.setTextSize(18);
 
+            // --- ডাবল টাচ এডিট লজিক শুরু (আপনার চ্যালেঞ্জ অনুযায়ী নিখুঁতভাবে যুক্ত করা) ---
+            tvSubName.setOnTouchListener(new View.OnTouchListener() {
+                private long lastClickTime = 0;
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                        long clickTime = System.currentTimeMillis();
+                        if (clickTime - lastClickTime < 300) {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(InputDataActivity.this);
+                            builder.setTitle("বিষয় পরিবর্তন করুন");
+                            final EditText input = new EditText(InputDataActivity.this);
+                            input.setText(tvSubName.getText().toString());
+                            builder.setView(input);
+                            builder.setPositiveButton("সেভ", (dialog, which) -> tvSubName.setText(input.getText().toString()));
+                            builder.setNegativeButton("বাতিল", null);
+                            builder.show();
+                        }
+                        lastClickTime = clickTime;
+                    }
+                    return true;
+                }
+            });
+            // --- ডাবল টাচ এডিট লজিক শেষ ---
+
             EditText et = new EditText(this);
             et.setHint("00");
             et.setTextColor(Color.BLACK);
@@ -303,6 +407,7 @@ public class InputDataActivity extends AppCompatActivity {
         tvTotalMarksDisplay.setGravity(Gravity.CENTER);
         dynamicSubjectLayout.addView(tvTotalMarksDisplay);
     }
+
 
     @SuppressLint("SetTextI18n")
     private void updateLiveTotal() {
@@ -388,6 +493,8 @@ public class InputDataActivity extends AppCompatActivity {
             totalGradePoints += Double.parseDouble(calculateGP(m));
         }
 
+
+
         String finalGrade;
         double finalGpa = isFailed ? 0.00 : totalGradePoints / subjectCount;
         if (isFailed) finalGrade = "F";
@@ -399,7 +506,8 @@ public class InputDataActivity extends AppCompatActivity {
         else if (finalGpa >= 1.00) finalGrade = "D";
         else finalGrade = "F";
 
-        boolean success = dbHelper.insertOrUpdateResult(roll, name, marksBuilder.toString(), totalMarks, finalGpa, finalGrade, subjectCount);
+        // এখন 'className' সহ ৮টি তথ্য পাঠানো হচ্ছে
+        boolean success = dbHelper.insertOrUpdateResult(roll, name, className, marksBuilder.toString(), totalMarks, finalGpa, finalGrade, subjectCount);
         if (success) {
             Toast.makeText(this, "সফলভাবে সংরক্ষিত", Toast.LENGTH_SHORT).show();
             clearFields();

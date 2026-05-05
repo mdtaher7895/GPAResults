@@ -150,7 +150,7 @@
                             android:layout_marginStart="10dp"
                             android:fontFamily="@font/sutonnymjregular"
                             android:textColor="#000000"
-                            android:textSize="35sp" />
+                            android:textSize="40sp" />
 
                         <TextView
                             android:id="@+id/tvTotalStudents"
@@ -166,10 +166,10 @@
                             android:layout_height="wrap_content"
                             android:text=" পাশের হার: "
                             android:background="@drawable/bordered_white_layer"
-                            android:layout_marginStart="200dp"
+                            android:layout_marginStart="170dp"
                             android:fontFamily="@font/sutonnymjregular"
                             android:textColor="#000000"
-                            android:textSize="35sp" />
+                            android:textSize="40sp" />
 
                         <TextView
                             android:id="@+id/tvPassRate"
@@ -188,7 +188,7 @@
                             android:minWidth="180dp"
                             android:layout_height="wrap_content"
                             android:hint="  শ্রেণীর নাম লিখুন  "
-                            android:layout_marginStart="200dp"
+                            android:layout_marginStart="170dp"
                             android:fontFamily="@font/sutonnymjregular"
                             android:textColorHint="#CCCCCC"
                             android:textColor="#FFFFFF"

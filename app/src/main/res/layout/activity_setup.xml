@@ -1,81 +1,129 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
-    android:padding="20dp"
+    android:background="#DFD8C0"
     android:id="@+id/setupRoot"
-    android:background="#888484">
+    tools:context=".SetupActivity"
+    android:padding="20dp">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="প্রতিষ্ঠানের তথ্য সেটআপ করুন"
-        android:textSize="22sp"
+        android:text="রোল নম্বর সেটআপ করুন"
+        android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="#333"
+        android:textColor="#000000"
         android:gravity="center"
-        android:layout_marginBottom="30dp"/>
+        android:fontFamily="@font/sutonnymjregular"
+        android:layout_marginTop="30dp"
+        android:layout_marginBottom="20dp"/>
 
-    <EditText
-        android:id="@+id/etInstName"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="মাদ্রাসার নাম"
-        android:background="@android:drawable/editbox_background"
-        android:padding="12dp"
-        android:layout_marginBottom="15dp"
-        android:inputType="text"/>
+        android:orientation="horizontal"
+        android:layout_marginBottom="20dp"
+        android:weightSum="2">
 
-    <EditText
-        android:id="@+id/etAddress"
+        <Spinner
+            android:id="@+id/classSpinner"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="5dp"
+            android:background="@android:drawable/btn_dropdown"/>
+
+        <Spinner
+            android:id="@+id/subjectSpinner"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:layout_marginStart="5dp"
+            android:background="@android:drawable/btn_dropdown"/>
+    </LinearLayout>
+
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="ঠিকানা"
-        android:background="@android:drawable/editbox_background"
-        android:padding="12dp"
-        android:layout_marginBottom="15dp"
-        android:inputType="text"/>
+        app:cardCornerRadius="15dp"
+        app:cardElevation="5dp"
+        app:cardBackgroundColor="#A49F9F">
 
-    <EditText
-        android:id="@+id/etExamName"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="শুরুর রোল নম্বর:"
+                android:textColor="#333333"
+                android:textSize="18sp"
+                android:fontFamily="@font/sutonnymjregular"
+                android:layout_marginBottom="8dp"/>
+
+            <EditText
+                android:id="@+id/etStartRoll"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:hint="যেমন: ১"
+                android:inputType="number"
+                android:padding="12dp"
+                android:background="@drawable/rounded_black_bg"
+                android:backgroundTint="#F5F5F5"
+                android:textColor="#000000"
+                android:layout_marginBottom="20dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="শেষ রোল নম্বর:"
+                android:textColor="#333333"
+                android:textSize="18sp"
+                android:fontFamily="@font/sutonnymjregular"
+                android:layout_marginBottom="8dp"/>
+
+            <EditText
+                android:id="@+id/etEndRoll"
+                android:layout_width="match_parent"
+                android:layout_height="55dp"
+                android:hint="যেমন: ৭০"
+                android:inputType="number"
+                android:padding="12dp"
+                android:background="@drawable/rounded_black_bg"
+                android:backgroundTint="#F5F5F5"
+                android:textColor="#000000"
+                android:layout_marginBottom="30dp"/>
+
+            <Button
+                android:id="@+id/btnGenerateRolls"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:background="@drawable/rounded_black_bg"
+                android:backgroundTint="#1B5E20"
+                android:fontFamily="@font/sutonnymjregular"
+                android:text="রোল জেনারেট করুন"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp" />
+
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+
+    <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="পরীক্ষার নাম"
-        android:background="@android:drawable/editbox_background"
-        android:padding="12dp"
-        android:layout_marginBottom="15dp"
-        android:inputType="text"/>
-
-    <EditText
-        android:id="@+id/etClassName"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="শ্রেণী"
-        android:background="@android:drawable/editbox_background"
-        android:padding="12dp"
-        android:layout_marginBottom="30dp"
-        android:inputType="text"/>
-
-    <Button
-        android:id="@+id/btnSubmit"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="তথ্য সেভ করুন এবং রেজাল্ট দেখুন"
-        android:backgroundTint="#2E7D32"
-        android:textColor="#FFF"
-        android:padding="15dp"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="10dp"/>
-
-    <Button
-        android:id="@+id/btnNext"
-        android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:text="পরবর্তী"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#1B5E20"
-        android:textStyle="bold" />
+        android:text="* রোল জেনারেট হয়ে গেলে আপনি নাম এবং বিষয়ভিত্তিক নম্বর ইনপুট দিতে পারবেন।"
+        android:textColor="#D32F2F"
+        android:textSize="14sp"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:fontFamily="@font/sutonnymjregular"/>
 
 </LinearLayout>
