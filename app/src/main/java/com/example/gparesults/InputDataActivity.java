@@ -51,6 +51,9 @@ public class InputDataActivity extends AppCompatActivity {
 
     @SuppressLint({"ClickableViewAccessibility", "UseCompatLoadingForDrawables"})
     @Override
+    /// /////////////////////////////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////
+    /// /////////////////////////////////////////////////////////////
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         androidx.activity.EdgeToEdge.enable(this);
@@ -62,13 +65,13 @@ public class InputDataActivity extends AppCompatActivity {
             return insets;
         });
 
-
         dbHelper = new DBHelper(this);
         etRoll = findViewById(R.id.etRoll);
         etName = findViewById(R.id.etName);
-// সঠিক লাইন:
-        className = getIntent().getStringExtra("CLASS_NAME") != null ? getIntent().getStringExtra("CLASS_NAME") : "নার্সারি";
 
+        // ১. মেইন অ্যাক্টিভিটি থেকে আসা ডাটা রিসিভ করা
+        int subCount = getIntent().getIntExtra("SUB_COUNT", 4);
+        String classNameFromIntent = getIntent().getStringExtra("CLASS_NAME") != null ? getIntent().getStringExtra("CLASS_NAME") : "নার্সারি";
 
         etRoll.setTextColor(Color.BLACK);
         etName.setTextColor(Color.BLACK);
@@ -80,9 +83,22 @@ public class InputDataActivity extends AppCompatActivity {
 
         dynamicSubjectLayout = findViewById(R.id.dynamicSubjectLayout);
 
-        // ১. স্পিনার এবং অ্যাডাপ্টার সেটআপ (XML আইডি অনুযায়ী)
+        // ২. স্পিনার সেটআপ এবং সরাসরি লক করে দেওয়া (যাতে ইউজার পরিবর্তন করতে না পারে)
         spClass = findViewById(R.id.classSpinner);
         spSubjectCount = findViewById(R.id.subjectSpinner);
+
+        // ৩. আগের পেজের ডাটা অনুযায়ী স্পিনার সেট করা
+        // (বি.দ্র: আপনার অ্যাডাপ্টার সেট করার কোডটি যদি এর নিচে থাকে, তবে এই সিলেকশন কোডটুকু অ্যাডাপ্টারের নিচে সরাতে হবে)
+        spSubjectCount.setSelection(subCount - 4);
+
+        // ৪. সিকিউরিটির জন্য স্পিনার দুটি ডিজেবল করা
+        spClass.setEnabled(false);
+        spSubjectCount.setEnabled(false);
+
+        /// //////////////////////////////////////////////////////////////
+        /// //////////////////////////////////////////////////////////////
+        /// //////////////////////////////////////////////////////////////
+
 
         String[] classes = {
                 "নার্সারি", "প্রথম শ্রেণি", "দ্বিতীয় শ্রেণি", "তৃতীয় শ্রেণি", "চতুর্থ শ্রেণি",
@@ -466,18 +482,28 @@ public class InputDataActivity extends AppCompatActivity {
     }
 
     private void saveData() {
+        // ১. পেমেন্ট সিকিউরিটি চেক (২ জনের পর পেমেন্ট চাইবে)
+        int currentCount = dbHelper.getExamineeCount();
+        if (currentCount >= 2 && !getIntent().getBooleanExtra("IS_APPROVED", false)) {
+            showPaymentDialog(); // পেমেন্ট ডায়ালগ দেখাবে
+            return;
+        }
+
+        // ২. ইনপুট ভ্যালিডেশন
         String rollStr = etRoll.getText().toString().trim();
         String name = etName.getText().toString().trim();
         if (rollStr.isEmpty() || name.isEmpty()) {
             Toast.makeText(this, "রোল এবং নাম অবশ্যই দিন", Toast.LENGTH_SHORT).show();
             return;
         }
+
         int roll = Integer.parseInt(rollStr);
         StringBuilder marksBuilder = new StringBuilder();
         int totalMarks = 0;
         double totalGradePoints = 0;
         boolean isFailed = false;
 
+        // ৩. মার্কস এবং জিপিএ গণনা
         for (EditText et : subjectInputList) {
             String input = et.getText().toString().trim();
             int m = 0;
@@ -493,8 +519,6 @@ public class InputDataActivity extends AppCompatActivity {
             totalGradePoints += Double.parseDouble(calculateGP(m));
         }
 
-
-
         String finalGrade;
         double finalGpa = isFailed ? 0.00 : totalGradePoints / subjectCount;
         if (isFailed) finalGrade = "F";
@@ -506,13 +530,14 @@ public class InputDataActivity extends AppCompatActivity {
         else if (finalGpa >= 1.00) finalGrade = "D";
         else finalGrade = "F";
 
-        // এখন 'className' সহ ৮টি তথ্য পাঠানো হচ্ছে
+        // ৪. ডাটাবেসে সেভ করা
         boolean success = dbHelper.insertOrUpdateResult(roll, name, className, marksBuilder.toString(), totalMarks, finalGpa, finalGrade, subjectCount);
         if (success) {
             Toast.makeText(this, "সফলভাবে সংরক্ষিত", Toast.LENGTH_SHORT).show();
             clearFields();
         }
     }
+
 
     private void clearFields() {
         etRoll.setText("");
@@ -536,4 +561,29 @@ public class InputDataActivity extends AppCompatActivity {
 
 
     }
+
+    private void showPaymentDialog() {
+        String message = "আপনার নিরবচ্ছিন্ন ব্যবহারের জন্য আমাদের এই ক্ষুদ্র প্রচেষ্টা। " +
+                "২ জনের বেশি পরীক্ষার্থীর তথ্য সংরক্ষণ এবং অ্যাপের সকল ফিচার আনলক করতে " +
+                "আমাদের প্রিমিয়াম মেম্বারশিপ প্রয়োজন।\n\n" +
+                "💳 **যোগাযোগ (বিকাশ/নগদ):**\n" +
+                "📞 01983422095\n\n" +
+                "আপনার সহযোগিতায় আমরা আরও উন্নত সেবা দিতে উৎসাহিত হব। ধন্যবাদ!";
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("প্রিমিয়াম অ্যাক্সেস প্রয়োজন")
+                .setMessage(message)
+                .setCancelable(false)
+                .setPositiveButton("ঠিক আছে", (dialog, which) -> dialog.dismiss())
+                .setNegativeButton("পরে করব", (dialog, which) -> {
+                    // ইউজার চাইলে এটা ক্যানসেল করতে পারবে না আমাদের লজিক অনুযায়ী,
+                    // তবে বাটন থাকলে দেখতে সুন্দর লাগে।
+                    dialog.dismiss();
+                })
+                .show();
+    }
+
+
+
+
 }

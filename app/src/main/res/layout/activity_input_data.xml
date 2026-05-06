@@ -140,6 +140,7 @@
             android:layout_height="60dp"
             android:text="নির্দিষ্ট একটি কলমের ভ্যালু টাইপ করুন"
             android:backgroundTint="#464C52"
+            android:visibility="invisible"
             android:textColor="#FFFFFF"
             android:layout_marginTop="12dp"
             android:textSize="16sp"/>

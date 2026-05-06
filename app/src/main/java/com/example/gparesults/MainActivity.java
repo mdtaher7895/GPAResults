@@ -47,15 +47,45 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // ১. রুট ডিভাইস চেক
+        if (isDeviceRooted()) {
+            showBlockDialog("নিরাপত্তাজনিত কারণে রুট করা ডিভাইসে এই অ্যাপটি চলবে না।");
+            return;
+        }
+
+        // ২. ফোর্স আপডেট চেক (এখানে সরাসরি FirebaseDatabase ব্যবহার করা হয়েছে যাতে ডাবল ভেরিয়েবল এরর না আসে)
+        FirebaseDatabase.getInstance().getReference("latest_version").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    Integer latestVersion = snapshot.getValue(Integer.class);
+                    int currentVersion = 1;
+
+                    if (latestVersion != null && latestVersion > currentVersion) {
+                        showBlockDialog("অ্যাপের নতুন আপডেট এসেছে। দয়া করে আপডেট করে নিন।");
+                    }
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        // সিস্টেম বার ইনসেট সেট করা
+        // ৩. স্ক্রিনশট এবং ভিডিও রেকর্ডিং ব্লক
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE);
+
+        // ৪. সিস্টেম বার ইনসেট সেট করা
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             androidx.core.graphics.Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+
+
 
         Button btnMadrasa = findViewById(R.id.btnMadrasa);
         Button btnSaved = findViewById(R.id.btnSaved);
@@ -78,6 +108,18 @@ public class MainActivity extends AppCompatActivity {
                     String status = snapshot.child("access").getValue(String.class);
                     String expiryDate = snapshot.child("expiry").getValue(String.class);
                     String today = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date());
+
+
+                    String appStatus = snapshot.child("app_status").getValue(String.class);
+                    if ("blocked".equals(appStatus)) {
+                        showBlockDialog("আপনার অ্যাপটি ব্লক করা হয়েছে। অ্যাডমিনের সাথে যোগাযোগ করুন।");
+                        return;
+                    }
+
+
+
+
+
 
                     if ("approved".equals(status)) {
                         if (expiryDate == null || today.compareTo(expiryDate) <= 0) {
@@ -157,10 +199,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 // পজিশন ২ বা তার বেশি মানে ৬ থেকে ২০টি বিষয়
-                if (position > 1 && !isApproved) {
-                    showPaymentDialog();
-                    subjectSpinner.setSelection(1); // ৫টি বিষয়ে ফেরত আনা
-                }
+
+
             }
             @Override public void onNothingSelected(AdapterView<?> parent) {}
         });
@@ -169,19 +209,17 @@ public class MainActivity extends AppCompatActivity {
         btnMadrasa.setOnClickListener(v -> {
             int position = subjectSpinner.getSelectedItemPosition();
             int subjects = position + 4;
-            String selectedClass = classSpinner.getSelectedItem().toString(); // এই লাইনটি যোগ করুন
+            String selectedClass = classSpinner.getSelectedItem().toString();
 
             Intent intent = new Intent(MainActivity.this, InputDataActivity.class);
             intent.putExtra("SUB_COUNT", subjects);
-            intent.putExtra("CLASS_NAME", selectedClass); // এই লাইনটি ডাটা পাঠাবে
+            intent.putExtra("CLASS_NAME", selectedClass);
+            intent.putExtra("IS_APPROVED", isApproved); // স্ট্যাটাস পাস হচ্ছে
 
-            if (position <= 1 || isApproved) {
-                startActivity(intent);
-            } else {
-                showPaymentDialog();
-                subjectSpinner.setSelection(1);
-            }
+            startActivity(intent); // সরাসরি চলে যাবে, কোনো বাধা নেই
         });
+
+
 
 
 
@@ -206,7 +244,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isPhoneWarningShown = false; // এটি মেথডের বাইরে বা উপরে ঘোষণা করতে পারেন
 
     private void showRegistrationDialog(DatabaseReference dbRef) {
-        isPhoneWarningShown = false; // প্রতিবার ডায়ালগ ওপেন হলে এটি রিসেট হবে
+        isPhoneWarningShown = false;
 
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("রেজিস্ট্রেশন করুন");
@@ -240,7 +278,6 @@ public class MainActivity extends AppCompatActivity {
             String userName = etName.getText().toString().trim();
             String userPhone = etPhone.getText().toString().trim();
 
-            // ১. নামের শর্ত (সবসময় বাধ্যতামূলক)
             String[] words = userName.split("\\s+");
             boolean isBengali = userName.matches("^[\\u0980-\\u09FF\\s]+$");
 
@@ -253,25 +290,29 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            // ২. ফোন নম্বরের বিশেষ লজিক
             if (userPhone.isEmpty() && !isPhoneWarningShown) {
-                // প্রথমবার খালি থাকলে সতর্কবার্তা দেবে
                 Toast.makeText(MainActivity.this, "আপনি ফোন নম্বর দিন।", Toast.LENGTH_LONG).show();
-                isPhoneWarningShown = true; // একবার সতর্ক করা হয়েছে
+                isPhoneWarningShown = true;
                 return;
             }
 
-            // ৩. সব ঠিক থাকলে বা দ্বিতীয়বার ক্লিক করলে ডাটা সেভ
+            // --- ডাটা সেভ করার লজিক (এখানেই app_status যুক্ত করা হয়েছে) ---
             dbRef.child("name").setValue(userName);
             dbRef.child("phone").setValue(userPhone.isEmpty() ? "Not Provided" : userPhone);
             dbRef.child("access").setValue("pending");
             dbRef.child("model").setValue(android.os.Build.MODEL);
 
+            // স্বয়ংক্রিয়ভাবে একটিভ স্ট্যাটাস সেট করা
+            dbRef.child("app_status").setValue("active");
+
             Toast.makeText(MainActivity.this, "তথ্য জমা হয়েছে, অনুমোদনের অপেক্ষা করুন", Toast.LENGTH_LONG).show();
             alertDialog.dismiss();
+
+            // ১ সেকেন্ড পর অ্যাক্টিভিটি রিস্টার্ট হবে যাতে নতুন ডাটা লোড হয়
             new android.os.Handler().postDelayed(this::recreate, 1000);
         });
     }
+
 
 
 
@@ -289,4 +330,25 @@ public class MainActivity extends AppCompatActivity {
         builder.setPositiveButton("ঠিক আছে", (dialog, which) -> dialog.dismiss());
         builder.show();
     }
+
+    private void showBlockDialog(String message) {
+        new AlertDialog.Builder(this)
+                .setTitle("সতর্কবার্তা")
+                .setMessage(message)
+                .setCancelable(false)
+                .setPositiveButton("Exit", (dialog, which) -> finish())
+                .show();
+    }
+
+
+    private boolean isDeviceRooted() {
+        String[] paths = { "/system/app/Superuser.apk", "/sbin/su", "/system/bin/su", "/system/xbin/su", "/data/local/xbin/su", "/data/local/bin/su", "/system/sd/xbin/su", "/system/bin/failsafe/su", "/data/local/su" };
+        for (String path : paths) {
+            if (new java.io.File(path).exists()) return true;
+        }
+        return false;
+    }
+
+
+
 }
