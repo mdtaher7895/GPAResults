@@ -21,6 +21,17 @@
         android:textColor="#000000"
         android:layout_marginBottom="30dp"/>
 
+    <ImageView
+        android:id="@+id/save_image"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="end"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:layout_marginEnd="10dp"
+        android:src="@drawable/saveicon"
+        android:contentDescription="Save Icon" />
+
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -31,6 +42,7 @@
         android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="#000000"/>
+
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -71,15 +83,6 @@
         android:backgroundTint="#2E7D32"
         android:textColor="#FFFFFF" />
 
-    <Button
-        android:id="@+id/btnSaved"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:text="সেভ করা ফাইল সমূহ"
-        android:fontFamily="@font/sutonnymjregular"
-        android:layout_margin="10dp"
-        android:textSize="28sp"
-        android:backgroundTint="#2E7D32"
-        android:textColor="#FFFFFF" />
+
 
 </LinearLayout>

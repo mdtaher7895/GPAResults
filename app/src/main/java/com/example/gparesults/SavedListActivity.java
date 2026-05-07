@@ -66,7 +66,8 @@ public class SavedListActivity extends AppCompatActivity {
         }
     }
 
-    private void addListRow(String className, int subCount) {
+    private void
+    addListRow(String className, int subCount) {
         TableRow row = new TableRow(this);
         // মার্জিন দেওয়ার জন্য LayoutParams ব্যবহার
         TableLayout.LayoutParams rowParams = new TableLayout.LayoutParams(

@@ -34,7 +34,6 @@ import java.util.List;
 public class RankingActivity extends AppCompatActivity {
 
     private TableLayout rankingTable, gradeChartTable, summeryTable;
-    private String className;
     private DBHelper dbHelper;
     private int subjectCount;
     private TextView tvTotalStudents, tvPassRate;
@@ -413,21 +412,12 @@ public class RankingActivity extends AppCompatActivity {
 
     @SuppressLint({"DefaultLocale", "SetTextI18n"})
     private void loadRankingTable() {
-        rankingTable.setBackgroundColor(Color.WHITE);
+        rankingTable.removeAllViews();
         rankingTable.setStretchAllColumns(true);
-
-        // --- এই নিচের ২টু লাইন অবশ্যই যোগ করতে হবে ---
-        if (className == null) className = getIntent().getStringExtra("CLASS_NAME") != null ? getIntent().getStringExtra("CLASS_NAME") : "নার্সারি";
-        if (subjectCount == 0) subjectCount = getIntent().getIntExtra("SUB_COUNT", 4);
-        // -------------------------------------------
-
-        Cursor cursor = dbHelper.getDataBySubjectCount(className, subjectCount);
-        // ... বাকি কোড আগের মতোই থাকবে
-
-
-
+        Cursor cursor = dbHelper.getDataBySubjectCount(subjectCount);
         List<StudentModel> rankingList = new ArrayList<>();
         int g5=0, gA=0, gAm=0, gB=0, gC=0, gD=0, gF=0;
+
         String[] subjectNames = {
                 "  আরবী  ", "  বাংলা  ", "  ইংরেজি  ", "  গণিত  ",
                 "হাদিস শরীফ ও\nআস: হুসনা", "কালিমা ও\nমাসায়িল",
@@ -457,34 +447,23 @@ public class RankingActivity extends AppCompatActivity {
         };
 
         if (cursor != null && cursor.moveToFirst()) {
+            // ... (এখানে আপনার ক্যালকুলেশন লজিকগুলো আগের মতোই আছে) ...
             int totalExaminees = 0, passCount = 0;
             do {
-                // ডাটাবেজ থেকে সঠিক সিরিয়ালে ডাটা সংগ্রহ করা হচ্ছে
-                int currentRoll = cursor.getInt(0);        // COL_ID (Index 0)
-                String currentName = cursor.getString(1);   // COL_NAME (Index 1)
-                // Index 2 এ 'class_name' আছে, যা আমরা এড়িয়ে চলছি।
-                String marks = cursor.getString(3);        // COL_MARKS (Index 3) - আগে এটি 2 ছিল
-                int totalMarks = cursor.getInt(4);         // COL_TOTAL (Index 4) - আগে এটি 3 ছিল
-                double gpa = cursor.getDouble(5);          // COL_GPA (Index 5) - আগে এটি 4 ছিল
-                String grade = cursor.getString(6);        // COL_GRADE (Index 6) - আগে এটি 5 ছিল
-
+                String marks = cursor.getString(2);
+                String grade = cursor.getString(5);
+                double gpa = cursor.getDouble(4);
                 boolean isFullyAbsent = true;
-                String[] marksArray = marks.split(",");
-                for (String m : marksArray) {
+                for (String m : marks.split(",")) {
                     if (!m.trim().equals("×")) { isFullyAbsent = false; break; }
                 }
-
                 boolean hasCross = marks.contains("×");
-                boolean isFails = hasCross || (grade != null && grade.equals("F"));
+                boolean isFails = hasCross || grade.equals("F");
 
-                // StudentModel এ সঠিক ডাটাগুলো সেট করা
-                StudentModel s = new StudentModel(currentRoll, currentName, marks, totalMarks, gpa, grade);
+                StudentModel s = new StudentModel(cursor.getInt(0), cursor.getString(1), marks, cursor.getInt(3), gpa, grade);
                 s.isFullyAbsent = isFullyAbsent;
                 s.isFails = isFails;
                 rankingList.add(s);
-
-
-
 
                 if (!isFullyAbsent) {
                     totalExaminees++;
@@ -495,10 +474,7 @@ public class RankingActivity extends AppCompatActivity {
                         passCount++;
                     }
                 }
-            }
-
-
-            while (cursor.moveToNext());
+            } while (cursor.moveToNext());
             cursor.close();
 
             FontUtils.applyCustomFont(this, tvTotalStudents, " " + convertToBengali(totalExaminees) + " জন ");
@@ -559,62 +535,9 @@ public class RankingActivity extends AppCompatActivity {
                     else addCell(row, bPos, false, -2);
                 }
 
-                // --- কার্য দিবস কলামের চূড়ান্ত সংশোধিত লজিক ---
-                if (i == 0) {
-                    final EditText etWorkDays = new EditText(RankingActivity.this);
-                    etWorkDays.setHint("...");
-                    etWorkDays.setGravity(Gravity.CENTER);
-                    etWorkDays.setBackgroundResource(R.drawable.table_border_header);
-                    etWorkDays.setTextSize(35);
-                    etWorkDays.setTextColor(Color.BLACK);
-                    etWorkDays.setInputType(android.text.InputType.TYPE_CLASS_TEXT);
-
-                    // শুরুতে একটি ডিফল্ট ফন্ট সেট করে রাখা (বাংলা)
-                    etWorkDays.setTypeface(androidx.core.content.res.ResourcesCompat.getFont(RankingActivity.this, R.font.sutonnymjregular));
-
-                    etWorkDays.setTypeface(androidx.core.content.res.ResourcesCompat.getFont(RankingActivity.this, R.font.timesnewromanregular));
-
-                    // টাইপ করার সাথে সাথে ফন্ট বদলানোর লজিক
-                    etWorkDays.addTextChangedListener(new android.text.TextWatcher() {
-                        @Override
-                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-                        @Override
-                        public void onTextChanged(CharSequence s, int start, int before, int count) {
-                            String text = s.toString();
-                            // ইংরেজি অক্ষর আছে কি না চেক করা
-                            boolean isEnglish = text.matches(".*[a-zA-Z].*");
-                            Typeface tf;
-                            if (isEnglish) {
-                                tf = androidx.core.content.res.ResourcesCompat.getFont(RankingActivity.this, R.font.timesnewromanregular);
-                            } else {
-                                tf = androidx.core.content.res.ResourcesCompat.getFont(RankingActivity.this, R.font.sutonnymjregular);
-                            }
-                            if (tf != null) etWorkDays.setTypeface(tf);
-                        }
-
-                        @Override
-                        public void afterTextChanged(android.text.Editable s) {}
-                    });
-
-                    TableRow.LayoutParams params = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.MATCH_PARENT);
-                    etWorkDays.setLayoutParams(params);
-                    row.addView(etWorkDays);
-                } else {
-                    // বাকি রো-গুলো শুধু সাদা থাকবে (মার্জ লুক)
-                    TextView emptyCell = new TextView(RankingActivity.this);
-                    emptyCell.setText(" ");
-                    emptyCell.setBackgroundColor(Color.WHITE);
-
-                    TableRow.LayoutParams params = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.MATCH_PARENT);
-                    emptyCell.setLayoutParams(params);
-                    row.addView(emptyCell);
-                }
-
+                addCell(row, (i == 6) ? "পরিচালকের স্বাক্ষর" : "", false, -2);
                 rankingTable.addView(row);
                 studentInCurrentPage++;
-
-
             }
         }
     }
@@ -698,7 +621,7 @@ public class RankingActivity extends AppCompatActivity {
                 public boolean onTouch(View v, MotionEvent event) {
                     if (event.getAction() == MotionEvent.ACTION_DOWN) {
                         long clickTime = System.currentTimeMillis();
-                        if (clickTime - lastClickTime < 1000) { // ১০০০ মিলিসেকেন্ডের মধ্যে দুইবার টাচ
+                        if (clickTime - lastClickTime < 300) { // ৩০০ মিলিসেকেন্ডের মধ্যে দুইবার টাচ
                             showEditSubjectDialog(tv); // নাম পরিবর্তনের বক্স খুলবে
                         }
                         lastClickTime = clickTime;
@@ -709,7 +632,7 @@ public class RankingActivity extends AppCompatActivity {
 
         } else {
             tv.setBackgroundResource(R.drawable.table_border_header);
-            tv.setTextSize(40);
+            tv.setTextSize(35);
         }
 
         tv.setTextColor(textColor);

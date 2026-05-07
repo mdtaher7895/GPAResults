@@ -76,6 +76,19 @@ public class DBHelper extends SQLiteOpenHelper {
         return result != -1;
     }
 
+
+    // নির্দিষ্ট শিক্ষার্থী খুঁজে পাওয়ার মেথড
+    public Cursor getStudentData(int roll, String className, int subCount) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        return db.rawQuery("SELECT " + COL_NAME + ", " + COL_MARKS +
+                        " FROM " + TABLE_NAME +
+                        " WHERE " + COL_ID + "=? AND " + COL_CLASS_NAME + "=? AND " + COL_SUB_COUNT + "=?",
+                new String[]{String.valueOf(roll), className, String.valueOf(subCount)});
+    }
+
+
+    // ডাটা খুঁজে বের করার সময় এখন ক্লাস নেম এবং সাবজেক্ট কাউন্ট দুটিই লাগবে
+
     public Cursor getDataBySubjectCount(String className, int subCount) {
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("SELECT * FROM " + TABLE_NAME + " WHERE " + COL_CLASS_NAME + "=? AND " + COL_SUB_COUNT + "=? ORDER BY " + COL_ID + " ASC",
@@ -115,4 +128,26 @@ public class DBHelper extends SQLiteOpenHelper {
         cursor.close();
         return exists;
     }
+
+    // নির্দিষ্ট সাবজেক্টের ডাটা অসম্পূর্ণ কি না তা চেক করার মেথড
+    public boolean isSubjectIncomplete(String className, int subCount, int subjectIndex) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = getDataBySubjectCount(className, subCount);
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                String marks = cursor.getString(cursor.getColumnIndexOrThrow("marks"));
+                String[] mArray = marks != null ? marks.split(",") : new String[0];
+                if (subjectIndex >= mArray.length || mArray[subjectIndex].trim().equals("×") || mArray[subjectIndex].trim().isEmpty()) {
+                    cursor.close();
+                    return true; // অসম্পূর্ণ ঘর পাওয়া গেছে
+                }
+            } while (cursor.moveToNext());
+            cursor.close();
+        }
+        return false; // সব ঘর পূর্ণ
+    }
+
+
+
+
 }

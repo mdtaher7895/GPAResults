@@ -85,6 +85,7 @@ public class SetupActivity extends AppCompatActivity {
                 return v;
             }
         };
+
         classAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spClass.setAdapter(classAdapter);
 
@@ -174,13 +175,11 @@ public class SetupActivity extends AppCompatActivity {
     }
 
     private String generateEmptyMarks(int count) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < count; i++) {
-            sb.append("×");
-            if (i < count - 1) sb.append(",");
-        }
-        return sb.toString();
+        return "";
     }
+
+
+
 
     private void checkDataAndAutoJump() {
         String currentClass = (className != null) ? className : "নার্সারি";

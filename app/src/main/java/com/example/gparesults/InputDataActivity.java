@@ -205,7 +205,47 @@ public class InputDataActivity extends AppCompatActivity {
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
             @Override public void afterTextChanged(Editable s) {
                 String val = s.toString();
+
+                // ১. যদি বক্স খালি না থাকে, তবে ডাটাবেজ থেকে চেক করবে
+                if (!val.isEmpty()) {
+                    try {
+                        int roll = Integer.parseInt(val);
+                        // ডাটাবেজ থেকে এই রোল, ক্লাস এবং সাবজেক্ট কাউন্টের ডাটা খুঁজবে
+                        android.database.Cursor cursor = dbHelper.getStudentData(roll, className, subjectCount);
+
+                        if (cursor != null && cursor.moveToFirst()) {
+                            // নাম খুঁজে পেলে সেট করবে
+                            etName.setText(cursor.getString(0));
+
+                            // নম্বরগুলো খুঁজে পেয়ে ইনপুট বক্সে বসিয়ে দিবে
+                            String marksRaw = cursor.getString(1);
+                            if (marksRaw != null && !marksRaw.isEmpty()) {
+                                String[] marksArray = marksRaw.split(",");
+                                for (int i = 0; i < marksArray.length && i < subjectInputList.size(); i++) {
+                                    String m = marksArray[i].trim();
+                                    // যদি নম্বর থাকে (× না হয়), তবেই বক্সে বসাবে
+                                    if (!m.equals("×")) {
+                                        subjectInputList.get(i).setText(m);
+                                    } else {
+                                        subjectInputList.get(i).setText(""); // খালি থাকলে খালি রাখবে
+                                    }
+                                }
+                            }
+                            cursor.close();
+                        } else {
+                            // যদি এই রোলের ডাটা না থাকে, তবে নাম এবং নম্বর বক্সগুলো পরিষ্কার রাখবে (ঐচ্ছিক)
+                            etName.setText("");
+                            for (android.widget.EditText et : subjectInputList) et.setText("");
+                        }
+                    } catch (NumberFormatException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                // ২. আপনার আগের ৩ ডিজিট লিমিট লজিক
                 if (val.length() == 3 && !val.equals("100")) { s.delete(2, 3); return; }
+
+                // ৩. আপনার আগের স্মার্ট জাম্প লজিক
                 boolean isReady = (val.length() == 2 && !val.equals("10")) || (val.length() == 3 && val.equals("100"));
                 if (isReady) {
                     if ((boolean) etRoll.getTag()) smartJumpFromAnywhere(-1);
@@ -213,6 +253,7 @@ public class InputDataActivity extends AppCompatActivity {
                 }
             }
         });
+
 
         findViewById(R.id.btnSaveInput).setOnClickListener(v -> saveData());
 

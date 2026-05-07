@@ -25,20 +25,25 @@
         android:layout_height="match_parent"
         android:layout_weight="5.5"
         android:background="@drawable/cell_border"
-        android:hint="নাম লিখুন"
+        android:hint="পরীক্ষার্থীর নাম লিখুন"
         android:padding="8dp"
         android:singleLine="true"
         android:textSize="14sp"
-        android:visibility="gone" /> <EditText
-    android:id="@+id/etMarksRow"
-    android:layout_width="0dp"
-    android:layout_height="match_parent"
-    android:layout_weight="3"
-    android:background="@drawable/cell_border"
-    android:gravity="center"
-    android:hint="---"
-    android:inputType="numberDecimal"
-    android:padding="8dp"
-    android:textSize="16sp" />
+        android:visibility="gone" />
+
+
+    <EditText
+        android:id="@+id/etMarksRow"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="3"
+        android:background="@drawable/cell_border"
+        android:gravity="center"
+        android:hint="00"
+        android:inputType="numberDecimal"
+        android:padding="8dp"
+        android:textColorHint="#CCCCCC"
+        android:textSize="16sp" />
+
 
 </LinearLayout>

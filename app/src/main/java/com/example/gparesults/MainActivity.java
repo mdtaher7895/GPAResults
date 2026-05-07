@@ -13,6 +13,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -67,8 +68,10 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
+
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
         });
 
         EdgeToEdge.enable(this);
@@ -85,10 +88,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-
-
         Button btnMadrasa = findViewById(R.id.btnMadrasa);
-        Button btnSaved = findViewById(R.id.btnSaved);
+        ImageView saveImage = findViewById(R.id.save_image);
         subjectSpinner = findViewById(R.id.subjectSpinner);
         classSpinner = findViewById(R.id.classSpinner);
 
@@ -117,10 +118,6 @@ public class MainActivity extends AppCompatActivity {
                     }
 
 
-
-
-
-
                     if ("approved".equals(status)) {
                         if (expiryDate == null || today.compareTo(expiryDate) <= 0) {
                             isApproved = true; // অ্যাপ্রুভড হলে ট্রু হবে
@@ -135,7 +132,10 @@ public class MainActivity extends AppCompatActivity {
                     showRegistrationDialog(dbRef);
                 }
             }
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+            }
         });
         // --- ফায়ারবেস কন্ট্রোল শেষ ---
 
@@ -143,10 +143,10 @@ public class MainActivity extends AppCompatActivity {
         List<String> subList = new ArrayList<>();
         for (int i = 4; i <= 20; i++) {
             String bnNum = String.valueOf(i)
-                    .replace('0','০').replace('1','১').replace('2','২')
-                    .replace('3','৩').replace('4','৪').replace('5','৫')
-                    .replace('6','৬').replace('7','৭').replace('8','৮')
-                    .replace('9','৯');
+                    .replace('0', '০').replace('1', '১').replace('2', '২')
+                    .replace('3', '৩').replace('4', '৪').replace('5', '৫')
+                    .replace('6', '৬').replace('7', '৭').replace('8', '৮')
+                    .replace('9', '৯');
             subList.add(bnNum + " টি বিষয়ের জন্য");
         }
 
@@ -158,7 +158,9 @@ public class MainActivity extends AppCompatActivity {
                 "দশম শ্রেণি", "একাদশ শ্রেণি", "দ্বাদশ শ্রেণি", "ত্রয়োদশ শ্রেণি", "চতুর্দশ শ্রেণি",
                 "পঞ্চদশ শ্রেণি", "ষোড়শ শ্রেণি", "সপ্তদশ শ্রেণি", "অষ্টাদশ শ্রেণি", "উনবিংশ শ্রেণি", "বিংশ শ্রেণি"
         };
-        for (String c : classes) { classList.add(c); }
+        for (String c : classes) {
+            classList.add(c);
+        }
 
         // ৩. শ্রেণির স্পিনারের জন্য অ্যাডাপ্টার
         ArrayAdapter<String> classAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, classList) {
@@ -202,7 +204,10 @@ public class MainActivity extends AppCompatActivity {
 
 
             }
-            @Override public void onNothingSelected(AdapterView<?> parent) {}
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+            }
         });
 
         // ৫. বাটন ক্লিক লজিক (নিখুঁত সিকিউরিটি চেক)
@@ -219,26 +224,14 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent); // সরাসরি চলে যাবে, কোনো বাধা নেই
         });
 
-
-
-
-
-
-
-        btnSaved.setOnClickListener(v -> {
-            // সেভ করা ফাইলগুলো দেখার জন্য টোস্ট মেসেজ (আপাতত)
-            Toast.makeText(MainActivity.this, "সেভ করা ফাইল দেখার সুবিধা শীঘ্রই আসছে!", Toast.LENGTH_SHORT).show();
-
-            // ভবিষ্যৎ লজিক এখানে লিখবেন (যেমন অন্য কোনো অ্যাক্টিভিটিতে যাওয়া)
+        saveImage.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, SavedListActivity.class);
             startActivity(intent);
         });
 
-
-
-
-
     }
+
+
 
     // রেজিস্ট্রেশন ডায়ালগ
     private boolean isPhoneWarningShown = false; // এটি মেথডের বাইরে বা উপরে ঘোষণা করতে পারেন

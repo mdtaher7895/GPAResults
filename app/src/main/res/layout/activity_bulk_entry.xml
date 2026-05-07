@@ -20,25 +20,30 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginBottom="20dp"
+            android:layout_marginBottom="5dp"
+            android:padding="5dp"
             android:weightSum="2">
 
             <Spinner
                 android:id="@+id/classSpinner"
                 android:layout_width="0dp"
-                android:layout_height="50dp"
+                android:layout_height="55dp"
                 android:layout_weight="1"
                 android:layout_marginEnd="5dp"
-                android:background="@android:drawable/btn_dropdown"/>
+                android:background="@android:drawable/btn_dropdown"
+                android:spinnerMode="dropdown" />
 
             <Spinner
                 android:id="@+id/subjectSpinner"
                 android:layout_width="0dp"
-                android:layout_height="50dp"
+                android:layout_height="55dp"
                 android:layout_weight="1"
                 android:layout_marginStart="5dp"
-                android:background="@android:drawable/btn_dropdown"/>
+                android:background="@android:drawable/btn_dropdown"
+                android:spinnerMode="dropdown" />
+
         </LinearLayout>
+
 
 
 
@@ -49,7 +54,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:background="#1B5E20"
-        android:padding="10dp"
+        android:padding="8dp"
         android:gravity="center_vertical">
 
         <TextView
@@ -66,20 +71,14 @@
             android:orientation="horizontal"
             android:gravity="center">
 
-            <TextView
+
+
+            <Spinner
+                android:id="@+id/spSubjectSelector"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="নম্বর"
-                android:textColor="#FFFFFF"
-                android:textStyle="bold" />
-
-            <ImageView
-                android:id="@+id/ivSubjectSelector"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
                 android:layout_marginLeft="5dp"
-                android:src="@android:drawable/ic_menu_sort_alphabetically"
-                app:tint="#FFFFFF" />
+                android:background="#FFFFFF"/>
         </LinearLayout>
 
         <LinearLayout
@@ -94,7 +93,7 @@
                 android:id="@+id/tvNameHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="ছাত্রের নাম"
+                android:text="পরীক্ষার্থীর নাম"
                 android:textColor="#FFFFFF"
                 android:textStyle="bold" />
 
@@ -136,3 +135,4 @@
         android:layout_margin="10dp" />
 
 </LinearLayout>
+
