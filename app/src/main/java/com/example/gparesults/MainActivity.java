@@ -103,6 +103,8 @@ public class MainActivity extends AppCompatActivity {
         btnMadrasa.setEnabled(true);
 
         dbRef.addValueEventListener(new ValueEventListener() {
+
+
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {

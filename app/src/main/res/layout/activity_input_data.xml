@@ -143,7 +143,6 @@
             android:visibility="invisible"
             android:textColor="#FFFFFF"
             android:layout_marginTop="12dp"
-            android:visibility="invisible"
             android:textSize="16sp"/>
 
     </LinearLayout>
